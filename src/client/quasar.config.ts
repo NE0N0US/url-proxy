@@ -21,7 +21,7 @@ export default defineConfig(ctx => {
 			open: false
 		},
 		build: {
-			distDir: 'url-artisan',
+			distDir: '../../dist/url-artisan',
 			publicPath: '/url-artisan',
 			vueRouterMode: 'hash',
 			useFilenameHashes: false,

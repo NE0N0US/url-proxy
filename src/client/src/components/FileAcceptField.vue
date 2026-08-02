@@ -27,7 +27,7 @@
 					auto-close
 					:offset="[input$?.$el.offsetWidth - 44, 0]"
 					transition-show="none" transition-hide="none"
-					@before-show="acceptLast = accept$"
+					@before-show="acceptLast$ = accept$"
 				>
 					<q-list
 						class="non-selectable"
@@ -40,7 +40,7 @@
 							:label="option.label"
 							@click.passive="accept$ = option.value"
 						>
-							<q-icon v-if="acceptLast === option.value" name="mdi-check" color="text"/>
+							<q-icon v-if="acceptLast$ === option.value" name="mdi-check" color="text"/>
 						</menu-item>
 					</q-list>
 				</q-menu>
@@ -51,7 +51,7 @@
 </template>
 
 <script setup lang="ts">
-import {useTemplateRef} from 'vue'
+import {ref, useTemplateRef} from 'vue'
 import {type QInput} from 'quasar'
 import {AppState, MenuItem} from '@'
 
@@ -71,7 +71,7 @@ const
 	accept$ = defineModel<string>({required: true}),
 
 	/** prevents layout shift */
-	acceptLast: string = '',
+	acceptLast$ = ref(''),
 
 	ACCEPT_OPTIONS = Object.freeze([
 		{icon: 'mdi-file-multiple-outline', label: 'All files', value: '*/*'},

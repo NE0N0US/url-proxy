@@ -28,7 +28,7 @@
 					:offset="[input$?.$el.offsetWidth - 44, 0]"
 					max-width="100dvw"
 					transition-show="none" transition-hide="none"
-					@before-show="methodLast = method$"
+					@before-show="methodLast$ = method$"
 				>
 					<q-list
 						class="non-selectable"
@@ -40,7 +40,7 @@
 							:label="method.value"
 							@click.passive="method$ = method.value"
 						>
-							<q-icon v-if="methodLast === method.value" name="mdi-check" color="text"/>
+							<q-icon v-if="methodLast$ === method.value" name="mdi-check" color="text"/>
 						</menu-item>
 					</q-list>
 				</q-menu>
@@ -51,7 +51,7 @@
 </template>
 
 <script setup lang="ts">
-import {useTemplateRef, watch} from 'vue'
+import {ref, useTemplateRef, watch} from 'vue'
 import {type QInput} from 'quasar'
 import {AppState, MenuItem} from '@'
 
@@ -71,7 +71,7 @@ const
 	method$ = defineModel<string>({required: true}),
 
 	/** prevents layout shift */
-	methodLast: string = '',
+	methodLast$ = ref(''),
 
 	watcherUppercase = watch(method$, value =>
 		method$.value = value.replace(/[^a-zA-Z]/g, '').toUpperCase(),
