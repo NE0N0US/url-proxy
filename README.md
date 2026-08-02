@@ -172,7 +172,7 @@ type CustomResult =
 ### Examples
 Under construction
 
-## License
+## License [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FNE0N0US%2Fcurl-proxy.svg?type=shield&issueType=license)](https://app.fossa.com/projects/git%2Bgithub.com%2FNE0N0US%2Fcurl-proxy?ref=badge_shield&issueType=license)
 Licensed under the Apache License, Version 2.0. See:
 - [LICENSE](./LICENSE)
 - [NOTICE](./NOTICE)

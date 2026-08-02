@@ -1,0 +1,122 @@
+.artisan-quasar {
+	.q-menu:not([style*="max-height:"]) {
+		max-height: none !important;
+	}
+
+	.q-field__label, .q-field__shadow, .q-placeholder::placeholder {
+		text-overflow: ellipsis;
+		user-select: none;
+	}
+
+	.q-textarea {
+		cursor: text;
+	}
+
+	.q-tabs__arrow {
+		text-shadow: none;
+	}
+
+	.q-tab__indicator {
+		height: 4px;
+		border-top-left-radius: 4px;
+		border-top-right-radius: 4px;
+	}
+
+	.q-toolbar, .q-item__label--header {
+		min-height: 48px;
+	}
+
+	.q-item__label--header {
+		padding-block: 8px;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+	}
+
+	.q-btn--round {
+		min-width: 40px;
+		min-height: 40px;
+	}
+
+	.q-checkbox__svg {
+		color: var(--color-background);
+	}
+
+	.q-field__native, .q-field__shadow {
+		color: var(--color-text);
+	}
+
+	.q-separator, .q-splitter__separator {
+		background-color: var(--color-border) !important;
+	}
+
+	.q-item__label--header,
+	.q-placeholder::placeholder,
+	.q-field__label,
+	.q-field--focused .q-field__shadow,
+	.shadow-text-always .q-field__shadow {
+		color: var(--color-text);
+		opacity: var(--opacity-disabled);
+	}
+
+	.q-field__shadow > .invisible {
+		display: none;
+	}
+
+	.q-item__label--caption {
+		color: inherit;
+		opacity: var(--opacity-disabled);
+	}
+
+	.q-checkbox__inner--falsy, .q-radio__inner--falsy {
+		color: var(--color-text);
+
+		.q-checkbox__bg, .q-radio__bg {
+			opacity: var(--opacity-disabled);
+		}
+	}
+
+	.q-item.disabled,
+	.q-btn.disabled,
+	.q-checkbox.disabled,
+	.q-tab--inactive .q-tab__content {
+		opacity: var(--opacity-disabled) !important;
+	}
+
+	.q-tab--inactive {
+		opacity: 1;
+	}
+
+	.q-field--focused .q-field__label {
+		color: inherit;
+		opacity: 1;
+	}
+
+	.q-drawer, .q-menu, .q-tooltip {
+		background-color: var(--color-background);
+		box-shadow: none;
+		border-color: var(--color-border);
+
+		&.q-drawer {
+			box-sizing: content-box;
+
+			& > * {
+				box-sizing: border-box;
+			}
+		}
+	}
+
+	.q-menu, .q-tooltip {
+		border: 1px solid var(--color-border);
+		color: var(--color-text);
+
+		&.q-tooltip {
+			padding: 8px 12px;
+			pointer-events: all !important;
+		}
+	}
+
+	.q-table th, .q-table td {
+		border-color: var(--color-border);
+	}
+}
