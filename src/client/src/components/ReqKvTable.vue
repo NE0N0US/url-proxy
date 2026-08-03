@@ -22,13 +22,17 @@
 <div v-else class="artisan-req-kv-table">
 	<q-table
 		class="fit bg-background text-text"
-		:columns="columns"
+		:ref="table => table$ = <QTable>table"
+		:columns="columns$"
 		hide-no-data
 		:filter="pagination$.filter"
 		:filter-method="filterRows"
 		:rows="allRows$"
 		v-model:pagination="pagination$"
 		dense flat square
+		:table-style="{minHeight: (table$ && table$.filteredSortedRows.length > pagination$.rowsPerPage)
+			? (((pagination$.rowsPerPage + 1) * 49 - 1) + 'px') : 'initial'}"
+		@keydown="keyNav($event)"
 	>
 		<template #header-cell-disable="props">
 			<q-th auto-width :props="props">
@@ -102,7 +106,7 @@
 		<template #bottom="scope">
 			<div class="grow q-pa-toolbar row no-wrap gap-sm">
 				<q-input
-					class="fit"
+					class="fit interactive-prepend"
 					spellcheck="false" autocomplete="off"
 					label="Search"
 					:shadow-text="filterRaw$?.query ? ' ' : filterRaw$?.regex
@@ -134,7 +138,10 @@
 			</div>
 		</template>
 	</q-table>
-	<q-resize-observer debounce="0" @resize="updateHeight"/>
+	<q-resize-observer
+		:ref="ref => resize$ = <QResizeObserver>ref"
+		debounce="0" @resize="updateHeight(tableHeight ?? $event.height)"
+	/>
 </div>
 </template>
 
@@ -168,24 +175,47 @@
 	border-top: none;
 	min-height: 0;
 	padding: 0 6px;
+
+	.interactive-prepend .q-field__control-container {
+		margin-left: 8px;
+	}
+
+	.q-pagination {
+		padding-right: 4px;
+	}
 }
 </style>
 
 <script setup lang="ts">
 import {computed, nextTick, ref, watch} from 'vue'
-import {debounce} from 'quasar'
-import {syncRef} from '@vueuse/core'
+import {debounce, type QResizeObserver, type QTable} from 'quasar'
+import {syncRef, useFocusWithin} from '@vueuse/core'
 import fuzzysort from 'fuzzysort'
 import {AppState, FileInputField, type ReqKV} from '@'
 
 const
 	{ripple$} = AppState,
 
+	table$ = ref<QTable>(),
+
+	{focused: tableFocused$} = useFocusWithin(computed(() => table$.value?.$el)),
+
 	inputs$ = ref<Record<string, any>>({}),
+
+	resize$ = ref<QResizeObserver>(),
 
 	$props = defineProps<{
 		multipartForm?: boolean | undefined,
+		hideColumns?: string[] | string | undefined,
+		tableHeight?: number | undefined,
 	}>(),
+
+	watcherHeight = watch($props, ({tableHeight: height}) => {
+		if (height === undefined)
+			resize$.value?.trigger(true)
+		else
+			updateHeight(height)
+	}),
 
 	textMode$ = defineModel<boolean>('text-mode', {required: true}),
 	text$ = defineModel<string>('text-value', {required: true}),
@@ -206,6 +236,14 @@ const
 		...column,
 		field: column.name
 	})),
+
+	columns$ = computed(() => {
+		const
+			{hideColumns} = $props,
+			names = Array.isArray(hideColumns) ? hideColumns
+				: hideColumns !== undefined ? [hideColumns] : []
+		return columns.filter(({name}) => !names.includes(name))
+	}),
 
 	rows$ = defineModel<ReqKV[] | ReqKV<string | File[]>[]>({required: true}),
 
@@ -272,13 +310,37 @@ function saveText() {
 	text$.value = ''
 }
 
-function updateHeight({height}: {height: number}) {
+function updateHeight(height: number) {
 	const
 		pagination = pagination$.value,
 		size = pagination.rowsPerPage,
 		newSize = Math.max(1, Math.floor((height / 49) - 2))
 	pagination.rowsPerPage = newSize
 	pagination.page = Math.round((pagination.page - 1) * size / newSize) + 1
+}
+
+function keyNav(event: KeyboardEvent) {
+	if (tableFocused$.value) {
+		const table = table$.value
+		switch (event.key.toLowerCase()) {
+			case 'pageup':
+				table?.prevPage()
+				break
+			case 'pagedown':
+				table?.nextPage()
+				break
+			case 'home':
+				table?.firstPage()
+				break
+			case 'end':
+				table?.lastPage()
+				break
+			default:
+				return
+		}
+		event.preventDefault()
+		event.stopPropagation()
+	}
 }
 
 function storeInput(column: string, row: number, input: any) {

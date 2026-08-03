@@ -25,6 +25,7 @@
 		<div class="url-field-pair row no-wrap">
 			<file-accept-field
 				class="no-shrink"
+				:offset-x="4"
 				v-model="fileAccept$"
 				@enter="fileInput$?.focus()"
 			/>

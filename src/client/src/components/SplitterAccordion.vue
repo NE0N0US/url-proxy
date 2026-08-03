@@ -97,9 +97,9 @@ const
 		},
 	}),
 
-	heightStart$ = ref<number>(0),
-	heightEnd$ = ref<number>(0),
-	height$ = ref<number>(0),
+	heightStart$ = ref(0),
+	heightEnd$ = ref(0),
+	height$ = ref(0),
 
 	autosizing$ = ref(false),
 

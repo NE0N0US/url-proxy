@@ -6,15 +6,15 @@
 		:inert="disable"
 		ref="input"
 		label="Method"
-		:shadow-text="method$ ? ' ' : METHODS[0]!.value"
+		:shadow-text="method$ ? ' ' : (placeholder ?? METHODS[0]!.value)"
 		v-model="method$"
 		:disable="disable"
 		borderless hide-bottom-space dense
-		@blur="method$ ||= METHODS[0]!.value"
+		@blur="$emit('blur')"
 		@keydown.enter.passive="$emit('enter')"
 	>
 		<template #prepend>
-			<q-icon :name="methodIcon(method$) ?? 'mdi-pencil-outline'" color="text"/>
+			<q-icon :name="methodIcon(method$) ?? (method$ ? 'mdi-pencil-outline' : 'mdi-console-line')" color="text"/>
 		</template>
 		<template #after>
 			<q-btn
@@ -25,13 +25,14 @@
 				<q-menu
 					translate="no"
 					auto-close
-					:offset="[input$?.$el.offsetWidth - 44, 0]"
+					:offset="[width$ - 40 - (offsetX ?? 0), 0]"
 					max-width="100dvw"
 					transition-show="none" transition-hide="none"
 					@before-show="methodLast$ = method$"
 				>
 					<q-list
 						class="non-selectable"
+						:style="{'min-width': width$ - 2 + 'px'}"
 						padding
 					>
 						<menu-item
@@ -47,6 +48,7 @@
 			</q-btn>
 		</template>
 	</q-input>
+	<q-resize-observer debounce="0" @resize="width$ = $event.width"/>
 </div>
 </template>
 
@@ -59,12 +61,17 @@ const
 	{ripple$} = AppState,
 
 	input$ = useTemplateRef<QInput>('input'),
+	width$ = ref(0),
 
 	$props = defineProps<{
 		disable?: boolean | undefined,
+		/** right padding */
+		offsetX: number,
+		placeholder?: string | undefined,
 	}>(),
 
 	$emit = defineEmits<{
+		blur: [],
 		enter: [],
 	}>(),
 

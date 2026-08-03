@@ -113,7 +113,9 @@
 							<http-method-field
 								class="no-shrink"
 								:disable="fetching$ || reqParamsTextMode$"
+								:offset-x="4"
 								v-model="reqMethod$"
+								@blur="reqMethod$ = 'GET'"
 								@enter="urlInput$?.focus()"
 							/>
 							<q-separator vertical/>
@@ -133,7 +135,7 @@
 							<div class="grow column no-wrap">
 								<q-tabs
 									breakpoint="0"
-									outside-arrows mobile-arrows
+									mobile-arrows
 									align="left" narrow-indicator
 									inline-label no-caps
 									v-model="reqTab$"
@@ -208,11 +210,16 @@
 											/>
 										</q-tab-panel>
 										<q-tab-panel class="overflow-hidden q-pa-none" name="options">
-											<req-options-form class="fit" v-model="reqOptions$"/>
+											<req-options-form
+												class="fit"
+												:table-height="reqTabHeight$"
+												v-model="reqOptions$"
+											/>
 										</q-tab-panel>
 									</q-tab-panels>
 								</div>
 							</div>
+							<q-resize-observer debounce="0" @resize="reqTabHeight$ = $event.height"/>
 						</div>
 					</div>
 				</template>
@@ -275,10 +282,12 @@ const
 
 	urlInput$ = useTemplateRef<typeof ReqUrlField>('url-input'),
 
+	reqTabHeight$ = ref(0),
+
 	loading$ = ref(false),
 	drawer$ = ref(false),
 	collapse$ = ref<null | 'start' | 'end'>('end'),
-	reqTab$ = ref('params'),
+	reqTab$ = ref('options'),
 	reqParamsTextMode$ = ref(false),
 	reqParamsTextValue$ = ref(''),
 	reqParamsPagination$ = ref({page: 1, rowsPerPage: 1}),
@@ -357,9 +366,13 @@ function randomString(bytes: number) {
 
 /** TODO:
 
+bump quasar and vercel
+implement options: retry preview, throttle presets, body, `resbody`, *Extract from main URL* button
+justify tabs when narrow
+disable request/options body for get/options?
+deep Object.freeze util
 AppState class => req / ui composables, syncRef
 qr
-https://quasar.dev/vue-components/table#keyboard-navigation
 
 min 320x320
 tabs: "(3..2..1) tab closed. undo?", prepend width method if not GET; fetching is parallel; replace state on sync, add on open, find or create tab on nav, QSpinnerDots
@@ -376,16 +389,10 @@ https://vueuse.org/core/useWebWorkerFn/
 https://vueuse.org/core/useNetwork/
 https://vueuse.org/core/useFetch/
 
-reactivity
-https://vueuse.org/shared/refDefault/ (model)
-
 other
 https://vueuse.org/shared/useTimeout/
 https://vueuse.org/core/useTimestamp/
 https://vueuse.org/core/useMagicKeys/
-https://vueuse.org/core/onClickOutside/ (tooltip)
-https://vueuse.org/core/useMouseInElement/ (tooltip)
-https://vueuse.org/core/useTransition/ (text)
 https://vueuse.org/core/useVModel/ (deep)
 
 */

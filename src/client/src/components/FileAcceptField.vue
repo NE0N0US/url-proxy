@@ -25,13 +25,13 @@
 			>
 				<q-menu
 					auto-close
-					:offset="[input$?.$el.offsetWidth - 44, 0]"
+					:offset="[width$ - 40 - (offsetX ?? 0), 0]"
 					transition-show="none" transition-hide="none"
 					@before-show="acceptLast$ = accept$"
 				>
 					<q-list
 						class="non-selectable"
-						:style="{'min-width': input$?.$el.offsetWidth - 2 + 'px'}"
+						:style="{'min-width': width$ - 2 + 'px'}"
 						padding
 					>
 						<menu-item
@@ -47,6 +47,7 @@
 			</q-btn>
 		</template>
 	</q-input>
+	<q-resize-observer debounce="0" @resize="width$ = $event.width"/>
 </div>
 </template>
 
@@ -59,9 +60,12 @@ const
 	{ripple$} = AppState,
 
 	input$ = useTemplateRef<QInput>('input'),
+	width$ = ref(0),
 
 	$props = defineProps<{
 		disable?: boolean | undefined,
+		/** right padding */
+		offsetX?: number | undefined,
 	}>(),
 
 	$emit = defineEmits<{

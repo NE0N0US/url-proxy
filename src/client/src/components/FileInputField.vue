@@ -44,19 +44,18 @@
 		</template>
 		<q-tooltip
 			v-if="Array.isArray(value$) && value$.length > 1"
+			:ref="tooltip => tooltipElement$ = <HTMLElement>(<QTooltip>tooltip)?.contentEl"
 			:delay="300" :hide-delay="500"
-			:model-value="tooltip$ || pinTooltip$"
+			:model-value="tooltip$ || !outsideTooltip$"
 			@update:model-value="tooltip$ = $event"
 			anchor="bottom left" self="top left" :offset="[13, 0]"
 			transition-show="fade" transition-hide="fade"
-			@click.passive="pinTooltip$ = !pinTooltip$"
 		>
-			<div class="disabled-text">
-				Click this tooltip to {{pinTooltip$ ? 'unpin' : 'pin'}}
+			<div class="tooltip column no-wrap gap-sm" translate="no">
+				<span v-for="name of names$">
+					{{name}}
+				</span>
 			</div>
-			<span class="tooltip" translate="no">
-				{{names$.join('\n')}}
-			</span>
 		</q-tooltip>
 	</q-file>
 </div>
@@ -88,8 +87,9 @@
 
 <script setup lang="ts">
 import {computed, ref, useTemplateRef} from 'vue'
-import {format, type QFile} from 'quasar'
+import {format, type QFile, type QTooltip} from 'quasar'
 const {humanStorageSize} = format
+import {useMouseInElement} from '@vueuse/core'
 import {AppState} from '@'
 
 const
@@ -125,8 +125,10 @@ const
 			: value?.size ?? 0
 	}),
 
-	tooltip$ = ref(false),
-	pinTooltip$ = ref(false)
+	tooltipElement$ = ref<HTMLElement>(),
+	{isOutside: outsideTooltip$} = useMouseInElement(tooltipElement$),
+
+	tooltip$ = ref(false)
 
 defineExpose({
 	focus: () => input$.value?.focus(),

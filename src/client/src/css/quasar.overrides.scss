@@ -3,6 +3,12 @@
 		max-height: none !important;
 	}
 
+	.q-input, .q-textarea {
+		&:not(.interactive-prepend) .q-field__prepend {
+			pointer-events: none;
+		}
+	}
+
 	.q-field__label, .q-field__shadow, .q-placeholder::placeholder {
 		text-overflow: ellipsis;
 		user-select: none;
@@ -14,6 +20,7 @@
 
 	.q-tabs__arrow {
 		text-shadow: none;
+		background-color: var(--color-background);
 	}
 
 	.q-tab__indicator {
@@ -42,7 +49,7 @@
 		color: var(--color-background);
 	}
 
-	.q-field__native, .q-field__shadow {
+	.q-field__native, .q-field__shadow, .q-field__suffix {
 		color: var(--color-text);
 	}
 
@@ -76,6 +83,7 @@
 		}
 	}
 
+	.q-field--disabled .q-field__control > div,
 	.q-item.disabled,
 	.q-btn.disabled,
 	.q-checkbox.disabled,
@@ -83,8 +91,11 @@
 		opacity: var(--opacity-disabled) !important;
 	}
 
+	.q-field--disabled .q-field__label,
+	.q-item.disabled .q-item__label--caption,
+	.q-item.disabled .q-checkbox.disabled,
 	.q-tab--inactive {
-		opacity: 1;
+		opacity: 1 !important;
 	}
 
 	.q-field--focused .q-field__label {
