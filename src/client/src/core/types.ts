@@ -5,6 +5,8 @@ export interface ReqKV<V = string, K = string> {
 	value: V
 }
 
+type ReqV<T> = Omit<ReqKV<T>, 'key'>
+
 export enum ReqBodyType {
 	NONE = 'none',
 	TEXT = 'text',
@@ -15,7 +17,24 @@ export enum ReqBodyType {
 
 export type ReqBody = null | string | File | ReqKV[] | ReqKV<string | File[]>[]
 
-type ReqV<T> = Omit<ReqKV<T>, 'key'>
+export enum ResBodyType {
+	NONE = '',
+	NULL = 'null',
+	ATOB = 'atob',
+	BTOA = 'btoa',
+	JAVASCRIPT = 'javascript',
+}
+
+function getReqOptionsBody() {
+	return {
+		type: ReqBodyType.NONE,
+		formTextMode: false,
+		formTextValue: '',
+		fileAccept: '*/*',
+		value: null as ReqBody,
+		pagination: {page: 1, rowsPerPage: 1},
+	}
+}
 
 function getReqOptionsHeadersAll() {
 	return Object.fromEntries(
@@ -48,11 +67,13 @@ export class ReqOptions {
 		throttleUp: string,
 		status: string,
 		statusText: string,
-		renameResponseHeaders: boolean,
+		renResHeaders: boolean,
 		skipDefaults: boolean,
 		method: string,
-		headersTab: string,
+		tab: string,
 		headersAll: ReturnType<typeof getReqOptionsHeadersAll>,
+		body: ReturnType<typeof getReqOptionsBody>,
+		resBody: string,
 	} = {
 		server: {disable: true, value: ''},
 		urls: {disable: false, value: ''},
@@ -68,9 +89,11 @@ export class ReqOptions {
 		ttfb: '',
 		throttle: '',
 		throttleUp: '',
-		renameResponseHeaders: false,
+		renResHeaders: false,
 		skipDefaults: false,
-		headersTab: 'headers',
+		tab: 'headers',
 		headersAll: getReqOptionsHeadersAll(),
+		body: getReqOptionsBody(),
+		resBody: '',
 	}
 }

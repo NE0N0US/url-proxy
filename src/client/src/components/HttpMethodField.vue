@@ -14,7 +14,7 @@
 		@keydown.enter.passive="$emit('enter')"
 	>
 		<template #prepend>
-			<q-icon :name="methodIcon(method$) ?? (method$ ? 'mdi-pencil-outline' : 'mdi-console-line')" color="text"/>
+			<q-icon :name="methodIcon(method$) ?? 'mdi-console-line'" color="text"/>
 		</template>
 		<template #after>
 			<q-btn

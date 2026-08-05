@@ -74,7 +74,7 @@
 										<menu-item
 											icon="mdi-swap-horizontal"
 											label="Encode and Decode…"
-											caption="Punycode, percent-encoding, Base64"
+											caption="QR, Punycode, percent-encoding, Base64"
 										/>
 										<menu-item
 											icon="mdi-file-multiple-outline"
@@ -119,7 +119,7 @@
 								@enter="urlInput$?.focus()"
 							/>
 							<q-separator vertical/>
-							<ReqUrlField
+							<req-url-field
 								class="grow"
 								ref="url-input"
 								:valid="reqUrlValid$"
@@ -136,8 +136,8 @@
 								<q-tabs
 									breakpoint="0"
 									mobile-arrows
-									align="left" narrow-indicator
-									inline-label no-caps
+									:align="$q.screen.width >= 600 ? 'left' : 'justify'"
+									narrow-indicator inline-label no-caps
 									v-model="reqTab$"
 								>
 									<q-tab
@@ -212,6 +212,7 @@
 										<q-tab-panel class="overflow-hidden q-pa-none" name="options">
 											<req-options-form
 												class="fit"
+												:disable-extract="disableExtract$"
 												:table-height="reqTabHeight$"
 												v-model="reqOptions$"
 											/>
@@ -255,7 +256,7 @@
 </style>
 
 <script setup lang="ts">
-import {ref, useTemplateRef} from 'vue'
+import {computed, ref, useTemplateRef} from 'vue'
 import {useTitle} from '@vueuse/core'
 import {toUnicode} from 'punycode'
 import {
@@ -287,7 +288,7 @@ const
 	loading$ = ref(false),
 	drawer$ = ref(false),
 	collapse$ = ref<null | 'start' | 'end'>('end'),
-	reqTab$ = ref('options'),
+	reqTab$ = ref('params'),
 	reqParamsTextMode$ = ref(false),
 	reqParamsTextValue$ = ref(''),
 	reqParamsPagination$ = ref({page: 1, rowsPerPage: 1}),
@@ -330,7 +331,11 @@ const
 		decodeURI(toUnicode(new URL(
 			AppService.resolveUrl(reqUrl$.value)
 		).hostname))
-	}` : ''))
+	}` : '')),
+
+	disableExtract$ = computed(() =>
+		!reqParams$.value.some(({disable, key, value}) => !disable && key === 'url' && value)
+	)
 
 function handlePasteCurl(event: ClipboardEvent) {
 	const text = event.clipboardData?.getData('text')
@@ -366,34 +371,26 @@ function randomString(bytes: number) {
 
 /** TODO:
 
-bump quasar and vercel
-implement options: retry preview, throttle presets, body, `resbody`, *Extract from main URL* button
-justify tabs when narrow
-disable request/options body for get/options?
-deep Object.freeze util
-AppState class => req / ui composables, syncRef
-qr
+* https://vueuse.org/core/useVModel/ (deep)
+* deep Object.freeze util
+* AppState class => req / ui composables, syncRef
+* disable request/options body for get/options?
+* tabs: "(3..2..1) tab closed. undo?", prepend width method if not GET; fetching is parallel; replace state on sync, add on open, find or create tab on nav, QSpinnerDots
 
-min 320x320
-tabs: "(3..2..1) tab closed. undo?", prepend width method if not GET; fetching is parallel; replace state on sync, add on open, find or create tab on nav, QSpinnerDots
-[accesskey] & keyboard shortcuts menu item, keyboard flow (next on enter)
-fullscreenable: https://vueuse.org/core/useFullscreen/
-confirm page reload
-copy: https://vueuse.org/core/useClipboard/
-cookies: https://developer.mozilla.org/en-US/docs/Web/API/Document/cookie#notes
-header from body (application/x-www-form-urlencoded, JS, JSON, XML)
-cache: no-store
+* min 320x320
+* conditionally confirm page reload
+* [accesskey] & keyboard shortcuts (https://vueuse.org/core/useMagicKeys/) menu item, keyboard flow (next on enter)
+* fullscreenable: https://vueuse.org/core/useFullscreen/
+* copy: https://vueuse.org/core/useClipboard/
+* cookies: https://developer.mozilla.org/en-US/docs/Web/API/Document/cookie#notes
+* header from body (application/x-www-form-urlencoded, JS, JSON, XML)
+* cache: no-store
 
-web api
 https://vueuse.org/core/useWebWorkerFn/
 https://vueuse.org/core/useNetwork/
 https://vueuse.org/core/useFetch/
-
-other
-https://vueuse.org/shared/useTimeout/
 https://vueuse.org/core/useTimestamp/
-https://vueuse.org/core/useMagicKeys/
-https://vueuse.org/core/useVModel/ (deep)
+https://vueuse.org/shared/useTimeout/
 
 */
 

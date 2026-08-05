@@ -23,10 +23,16 @@
 	/>
 	<template v-else-if="type$ === ReqBodyType.FILE && (value$ === null || value$ instanceof FileClass)">
 		<div class="url-field-pair row no-wrap">
-			<file-accept-field
+			<suggested-input
 				class="no-shrink"
+				icon="mdi-filter-outline"
+				label="Accept"
+				:placeholder="FILE_ACCEPT_OPTIONS[0]!.value"
+				input-class="artisan-mono"
+				:options="FILE_ACCEPT_OPTIONS"
 				:offset-x="4"
 				v-model="fileAccept$"
+				@blur="fileAccept$ ||= FILE_ACCEPT_OPTIONS[0]!.value"
 				@enter="fileInput$?.focus()"
 			/>
 			<q-separator vertical/>
@@ -71,7 +77,7 @@
 
 <script setup lang="ts">
 import {computed, useTemplateRef} from 'vue'
-import {AppState, FileAcceptField, FileInputField, ReqKvTable, ReqBodyType, type ReqBody, type ReqKV} from '@'
+import {AppState, FileInputField, ReqKvTable, ReqBodyType, type ReqBody, type ReqKV, SuggestedInput} from '@'
 
 const
 	{ripple$} = AppState,
@@ -100,6 +106,13 @@ const
 		rowsPerPage: number,
 		page: number,
 	}>('form-pagination', {required: true}),
+
+	FILE_ACCEPT_OPTIONS = Object.freeze([
+		{icon: 'mdi-file-multiple-outline', label: 'All files', value: '*/*'},
+		{icon: 'mdi-image-outline', label: 'Images', value: 'image/*'},
+		{icon: 'mdi-video-outline', label: 'Videos', value: 'video/*'},
+		{icon: 'mdi-music-note-outline', label: 'Audio', value: 'audio/*'},
+	]),
 
 	fileAccept$ = defineModel<string>('file-accept', {required: true}),
 

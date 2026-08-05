@@ -162,12 +162,6 @@
 
 	&, :deep(.q-tab-panels), :deep(.q-panel), :deep(.q-tab-panel) {
 		overflow: initial !important;
-		// preserve focus on mouse spam
-		pointer-events: none !important;
-	}
-
-	:deep(.q-tab-panel > *) {
-		pointer-events: auto !important;
 	}
 
 	:deep(.q-color-picker__spectrum-tab) {

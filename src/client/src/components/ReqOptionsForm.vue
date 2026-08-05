@@ -36,6 +36,16 @@
 			/>
 		</template>
 	</q-input>
+	<q-list class="non-selectable">
+		<menu-item
+			class="q-pa-toolbar"
+			icon="mdi-cog-transfer-outline"
+			label="Extract cURL Proxy options from URL"
+			caption="Parse cURL Proxy URL into original URL and options"
+			:disable="disableExtract"
+			@click="$emit('extract')"
+		/>
+	</q-list>
 	<q-input
 		class="list-item-input q-pa-toolbar"
 		spellcheck="false" autocomplete="off"
@@ -67,7 +77,7 @@
 			<q-input
 				class="list-item-input q-pa-toolbar"
 				spellcheck="false" autocomplete="off"
-				label="URLs"
+				label="Extra URLs"
 				:shadow-text="options$.curlProxy.urls.value ? ' ' : 'Newline-separated URLs (full, protocol-less, or relative)'"
 				autogrow
 				v-model="options$.curlProxy.urls.value"
@@ -96,87 +106,64 @@
 					v-model="options$.curlProxy.fastest"
 				/>
 			</q-list>
-			<div v-for="group, index of PROXY_OPTIONS" :key="index" class="proxy-options">
-				<q-input
-					v-for="{name, digits, icon, label, caption} of group" :key="name"
-					class="list-item-input"
-					spellcheck="false" autocomplete="off"
-					:inputmode="digits ? 'numeric' : undefined"
-					:label="label"
-					:shadow-text="(<any>options$.curlProxy)[name] ? ' ' : caption"
-					:mask="digits ? numericMask(digits) : undefined"
-					reverse-fill-mask
-					unmasked-value
-					v-model="(<any>options$.curlProxy)[name]"
-					:maxlength="digits ? numericMask(digits).length : undefined"
-					borderless hide-bottom-space dense
-				>
-					<template #prepend>
-						<q-icon :name="icon" color="text"/>
+			<q-separator/>
+			<template v-for="group, index of PROXY_OPTIONS" :key="index">
+				<div v-if="group instanceof Object" class="proxy-options">
+					<template v-for="{name, digits, icon, label, caption, options}, index of group" :key="name">
+						<q-input
+							v-if="!options?.length"
+							class="list-item-input"
+							spellcheck="false" autocomplete="off"
+							:inputmode="digits ? 'numeric' : undefined"
+							:label="label"
+							:shadow-text="(<any>options$.curlProxy)[name] ? ' ' : caption"
+							:mask="digits ? numericMask(digits) : undefined"
+							reverse-fill-mask
+							unmasked-value
+							v-model="(<any>options$.curlProxy)[name]"
+							:maxlength="digits ? numericMask(digits).length : undefined"
+							borderless hide-bottom-space dense
+						>
+							<template #prepend>
+								<q-icon :name="icon" color="text"/>
+							</template>
+						</q-input>
+						<!-- .5 - workaround for fractional width: https://stackoverflow.com/q/39861687 -->
+						<suggested-input
+							v-else
+							class="list-item-input"
+							spellcheck="false" autocomplete="off"
+							:inputmode="digits ? 'numeric' : undefined"
+							:icon="icon"
+							:label="label"
+							:placeholder="caption"
+							:options="options"
+							:offset-x="!index ? 6.5 : 12.5"
+							:mask="digits ? numericMask(digits) : undefined"
+							reverse-fill-mask
+							unmasked-value
+							v-model="(<any>options$.curlProxy)[name]"
+							:maxlength="digits ? numericMask(digits).length : undefined"
+						/>
 					</template>
-				</q-input>
-			</div>
-			<q-separator/>
-			<q-tabs
-				breakpoint="0"
-				mobile-arrows
-				align="left" narrow-indicator
-				inline-label no-caps
-				v-model="options$.curlProxy.headersTab"
-			>
-				<q-tab
-					icon="mdi-table"
-					label="Headers"
-					name="headers"
-					:ripple="ripple$"
-				/>
-				<q-tab
-					icon="mdi-table-minus"
-					label="Delete Headers"
-					name="delHeaders"
-					:ripple="ripple$"
-				/>
-				<q-tab
-					icon="mdi-table"
-					label="Response Headers"
-					name="resHeaders"
-					:ripple="ripple$"
-				/>
-				<q-tab
-					icon="mdi-table-minus"
-					label="Delete Response Headers"
-					name="delResHeaders"
-					:ripple="ripple$"
-				/>
-			</q-tabs>
-			<q-separator/>
-			<div
-				class="row no-wrap"
-				:style="{width: Object.keys(options$.curlProxy.headersAll).length * 100 + '%'}"
-			>
-				<req-kv-table
-					v-for="table, _key, index of options$.curlProxy.headersAll" :key="table.name"
-					class="full-width relative-position"
-					:class="{invisible: options$.curlProxy.headersTab !== table.name}"
-					:style="{
-						'max-width': 100 / Object.keys(options$.curlProxy.headersAll).length + '%',
-						right: index * 100 / Object.keys(options$.curlProxy.headersAll).length + '%',
-					}"
-					:hide-columns="table.deleteMode ? 'value' : undefined"
-					:table-height="tableHeight - 48"
-					v-model:text-mode="table.textMode"
-					v-model:text-value="table.textValue"
-					v-model="table.rows"
-					v-model:pagination="table.pagination"
-				/>
-			</div>
-			<q-separator/>
+				</div>
+				<q-list v-else-if="group === 'RETRIES_PREVIEW'" class="non-selectable">
+					<menu-item
+						class="q-pa-toolbar"
+						icon="mdi-information-outline"
+						label="Retries Preview"
+						:caption="retriesPreview$ || 'No delays'"
+						disable
+					/>
+					<q-separator/>
+				</q-list>
+			</template>
 			<q-list class="non-selectable">
 				<req-options-form-toggle
 					icon="mdi-rename-outline"
 					label="Rename Response Headers"
 					:caption="'To \x22X-Original-*\x22 before changes'"
-					v-model="options$.curlProxy.renameResponseHeaders"
+					v-model="options$.curlProxy.renResHeaders"
 				/>
 				<req-options-form-toggle
 					icon="mdi-skip-forward"
@@ -186,12 +173,132 @@
 				/>
 			</q-list>
 			<div class="proxy-options">
-				<!-- .5 - workaround for fractional width: https://stackoverflow.com/q/39861687 -->
 				<http-method-field
-					:offset-x="12.5"
+					class="list-item-input"
+					:offset-x="12"
 					placeholder="Override"
 					v-model="options$.curlProxy.method"
 				/>
+			</div>
+			<q-separator/>
+			<q-tabs
+				breakpoint="0"
+				mobile-arrows
+				align="left" narrow-indicator
+				inline-label no-caps
+				v-model="options$.curlProxy.tab"
+			>
+				<q-tab
+					icon="mdi-table"
+					label="Headers"
+					:alert="!!(options$.curlProxy.headersAll.headers!.textValue
+						|| options$.curlProxy.headersAll.headers!.rows.length)"
+					:alert-icon="options$.curlProxy.headersAll.headers!.textValue
+						? 'mdi-content-save-edit-outline' : undefined"
+					name="headers"
+					:ripple="ripple$"
+				/>
+				<q-tab
+					icon="mdi-table-minus"
+					label="Delete Headers"
+					:alert="!!(options$.curlProxy.headersAll.delHeaders!.textValue
+						|| options$.curlProxy.headersAll.delHeaders!.rows.length)"
+					:alert-icon="options$.curlProxy.headersAll.delHeaders!.textValue
+						? 'mdi-content-save-edit-outline' : undefined"
+					name="delHeaders"
+					:ripple="ripple$"
+				/>
+				<q-tab
+					icon="mdi-table"
+					label="Response Headers"
+					:alert="!!(options$.curlProxy.headersAll.resHeaders!.textValue
+						|| options$.curlProxy.headersAll.resHeaders!.rows.length)"
+					:alert-icon="options$.curlProxy.headersAll.resHeaders!.textValue
+						? 'mdi-content-save-edit-outline' : undefined"
+					name="resHeaders"
+					:ripple="ripple$"
+				/>
+				<q-tab
+					icon="mdi-table-minus"
+					label="Delete Response Headers"
+					:alert="!!(options$.curlProxy.headersAll.delResHeaders!.textValue
+						|| options$.curlProxy.headersAll.delResHeaders!.rows.length)"
+					:alert-icon="options$.curlProxy.headersAll.delResHeaders!.textValue
+						? 'mdi-content-save-edit-outline' : undefined"
+					name="delResHeaders"
+					:ripple="ripple$"
+				/>
+				<q-tab
+					icon="mdi-text-box-outline"
+					label="Body"
+					:alert="!!(options$.curlProxy.body.formTextValue
+						|| options$.curlProxy.body.value
+						&& (options$.curlProxy.body.value as any)?.length !== 0)"
+					:alert-icon="options$.curlProxy.body.formTextValue
+						? 'mdi-content-save-edit-outline' : undefined"
+					name="body"
+					:ripple="ripple$"
+				/>
+				<q-tab
+					icon="mdi-text-box-edit-outline"
+					label="Response Body"
+					:alert="options$.curlProxy.resBody.startsWith(ResBodyType.JAVASCRIPT + ':')
+						? (options$.curlProxy.resBody.length > ResBodyType.JAVASCRIPT.length + 1)
+						: !!options$.curlProxy.resBody"
+					name="resBody"
+					:ripple="ripple$"
+				/>
+			</q-tabs>
+			<q-separator/>
+			<div class="overflow-hidden">
+				<div
+					class="row no-wrap"
+					:style="{width: (Object.keys(options$.curlProxy.headersAll).length + 2) * 100 + '%'}"
+				>
+					<req-kv-table
+						v-for="table, _key, index of options$.curlProxy.headersAll" :key="table.name"
+						class="full-width relative-position"
+						:class="{invisible: options$.curlProxy.tab !== table.name}"
+						:style="{
+							'max-width': 100 / (Object.keys(options$.curlProxy.headersAll).length + 2) + '%',
+							right: index * 100 / (Object.keys(options$.curlProxy.headersAll).length + 2) + '%',
+						}"
+						:inert="options$.curlProxy.tab !== table.name"
+						:hide-columns="table.deleteMode ? 'value' : undefined"
+						:table-height="tableHeight - 48"
+						v-model:text-mode="table.textMode"
+						v-model:text-value="table.textValue"
+						v-model="table.rows"
+						v-model:pagination="table.pagination"
+					/>
+					<req-body-form
+						class="full-width relative-position"
+						:class="{invisible: options$.curlProxy.tab !== 'body'}"
+						:style="{
+							'max-width': 100 / (Object.keys(options$.curlProxy.headersAll).length + 2) + '%',
+							right: Object.keys(options$.curlProxy.headersAll).length * 100
+								/ (Object.keys(options$.curlProxy.headersAll).length + 2) + '%',
+						}"
+						:inert="options$.curlProxy.tab !== 'body'"
+						v-model:type="options$.curlProxy.body.type"
+						v-model:form-text-mode="options$.curlProxy.body.formTextMode"
+						v-model:form-text-value="options$.curlProxy.body.formTextValue"
+						v-model:file-accept="options$.curlProxy.body.fileAccept"
+						v-model="options$.curlProxy.body.value"
+						v-model:form-pagination="options$.curlProxy.body.pagination"
+					/>
+					<res-body-form
+						class="full-width relative-position"
+						:class="{invisible: options$.curlProxy.tab !== 'resBody'}"
+						:style="{
+							'max-width': 100 / (Object.keys(options$.curlProxy.headersAll).length + 2) + '%',
+							right: (Object.keys(options$.curlProxy.headersAll).length + 1) * 100
+								/ (Object.keys(options$.curlProxy.headersAll).length + 2) + '%',
+						}"
+						:inert="options$.curlProxy.tab !== 'resBody'"
+						v-model="options$.curlProxy.resBody"
+					/>
+				</div>
 			</div>
 		</q-expansion-item>
 	</q-list>
@@ -202,7 +309,7 @@
 </template>
 
 <style scoped lang="scss">
-.list-item-input, .artisan-http-method-field {
+.list-item-input {
 	:deep(.q-field__control-container) {
 		margin-inline: 26px 10px;
 	}
@@ -236,8 +343,19 @@
 </style>
 
 <script setup lang="ts">
-import {ref} from 'vue'
-import {AppState, HttpMethodField, ReqKvTable, ReqOptionsFormToggle, type ReqOptions} from '@'
+import {computed, ref} from 'vue'
+import {
+	AppState,
+	HttpMethodField,
+	MenuItem,
+	ReqBodyForm,
+	ReqKvTable,
+	ReqOptionsFormToggle,
+	type ReqOptions,
+	ResBodyForm,
+	ResBodyType,
+	SuggestedInput,
+} from '@'
 
 const
 	{ripple$} = AppState,
@@ -245,10 +363,30 @@ const
 	height$ = ref(0),
 
 	$props = defineProps<{
+		disableExtract?: boolean | undefined,
 		tableHeight: number,
 	}>(),
 
+	$emits = defineEmits<{
+		extract: [],
+	}>(),
+
 	options$ = defineModel<ReqOptions>({required: true}),
+
+	retriesPreview$ = computed(() => {
+		const
+			{retry, retryIn, retryFactor, retryLimit} = options$.value.curlProxy,
+			retries = +(retry || 0),
+			interval = +(retryIn || 0),
+			backoffMultiplier = +(retryFactor || 1),
+			backoffLimit = +(retryLimit || Infinity)
+		return !interval || !backoffMultiplier || !backoffLimit ? '' : Array<void>(Math.min(retries, 128)).fill()
+			.map((_, attempt) => {
+				const ms = Math.min(backoffMultiplier ** attempt * interval, backoffLimit)
+				return ms < 60_000 ? (+(ms / 1_000)?.toFixed(3) + 's') : (+(ms / 60_000)?.toFixed(2) + 'm')
+			})
+			.join(', ')
+	}),
 
 	PROXY_OPTIONS = Object.freeze([
 		[
@@ -259,19 +397,38 @@ const
 			{name: 'retryFactor', digits: 16, icon: 'mdi-chart-line-variant', label: 'Backoff Multiplier', caption: 'Per retry'},
 			{name: 'retryLimit', digits: 16, icon: 'mdi-timer-lock-outline', label: 'Backoff Limit, ms', caption: 'Max. retry interval'},
 		],
+		'RETRIES_PREVIEW',
 		[
 			{name: 'timeout', digits: 16, icon: 'mdi-clock-remove-outline', label: 'Timeout, ms', caption: 'Abort request after'},
 			{name: 'ttfb', digits: 16, icon: 'mdi-timer-sand', label: 'TTFB, ms', caption: 'Time to first byte'},
 		],
 		[
-			{name: 'throttle', digits: 16, icon: 'mdi-speedometer-medium', label: 'Throttle Both, kbit/s', caption: 'Bidirectional bandwidth limit'},
-			{name: 'throttleUp', digits: 16, icon: 'mdi-speedometer-slow', label: 'Throttle Upload, kbit/s', caption: 'Upload bandwidth limit'},
+			{name: 'throttle', digits: 16, icon: 'mdi-speedometer-medium', label: 'Throttle Both, kbit/s', caption: 'Bidirectional bandwidth limit', options: throttleOptions(false)},
+		],
+		[
+			{name: 'throttleUp', digits: 16, icon: 'mdi-speedometer-slow', label: 'Throttle Upload, kbit/s', caption: 'Upload bandwidth limit', options: throttleOptions(true)},
 		],
 		[
 			{name: 'status', digits: 3, icon: 'mdi-numeric', label: 'Status', caption: 'Response status code'},
 			{name: 'statusText', icon: 'mdi-message-text-outline', label: 'Status Text', caption: 'Response status message'},
 		],
-	])
+	] as Array<string | {
+		name: string,
+		digits?: number,
+		icon: string,
+		label: string,
+		caption: string,
+		options?: {icon: string, label: string, value: string}[],
+	}[]>)
+
+function throttleOptions(upload: boolean) {
+	return [
+		{icon: 'mdi-signal-3g', label: '3G', value: !upload ? '384' : '256'},
+		{icon: 'mdi-signal-hspa', label: 'H', value: !upload ? '7000' : '2000'},
+		{icon: 'mdi-signal-hspa-plus', label: 'H+', value: !upload ? '12000' : '5000'},
+		{icon: 'mdi-signal-4g', label: '4G', value: !upload ? '50000' : '15000'},
+	]
+}
 
 function numericMask(digits: number) {
 	let mask = '#'
