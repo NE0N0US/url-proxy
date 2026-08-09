@@ -280,6 +280,7 @@
 								/ (Object.keys(options$.curlProxy.headersAll).length + 2) + '%',
 						}"
 						:inert="options$.curlProxy.tab !== 'body'"
+						:form-table-height="tableHeight - 97"
 						v-model:type="options$.curlProxy.body.type"
 						v-model:form-text-mode="options$.curlProxy.body.formTextMode"
 						v-model:form-text-value="options$.curlProxy.body.formTextValue"
@@ -345,7 +346,7 @@
 <script setup lang="ts">
 import {computed, ref} from 'vue'
 import {
-	AppState,
+	AppService,
 	HttpMethodField,
 	MenuItem,
 	ReqBodyForm,
@@ -355,10 +356,11 @@ import {
 	ResBodyForm,
 	ResBodyType,
 	SuggestedInput,
+	useUiStore,
 } from '@'
 
 const
-	{ripple$} = AppState,
+	{ripple$} = useUiStore(),
 
 	height$ = ref(0),
 
@@ -388,7 +390,7 @@ const
 			.join(', ')
 	}),
 
-	PROXY_OPTIONS = Object.freeze([
+	PROXY_OPTIONS = AppService.freeze([
 		[
 			{name: 'retry', digits: 16, icon: 'mdi-reload', label: 'Retries', caption: 'Count after first request'},
 			{name: 'retryIn', digits: 16, icon: 'mdi-timer-outline', label: 'Interval, ms', caption: 'Between retries'},

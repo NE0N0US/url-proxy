@@ -51,6 +51,7 @@
 		v-else-if="[ReqBodyType.FORM_URLENCODED, ReqBodyType.FORM_MULTIPART].includes(type$) && Array.isArray(value$)"
 		class="grow"
 		:multipart-form="type$ === ReqBodyType.FORM_MULTIPART"
+		:table-height="formTableHeight"
 		v-model:text-mode="formTextMode$"
 		v-model:text-value="formTextValue$"
 		v-model="<ReqKV[]>value$"
@@ -77,14 +78,27 @@
 
 <script setup lang="ts">
 import {computed, useTemplateRef} from 'vue'
-import {AppState, FileInputField, ReqKvTable, ReqBodyType, type ReqBody, type ReqKV, SuggestedInput} from '@'
+import {
+	AppService,
+	FileInputField,
+	ReqKvTable,
+	ReqBodyType,
+	type ReqBody,
+	type ReqKV,
+	SuggestedInput,
+	useUiStore,
+} from '@'
 
 const
-	{ripple$} = AppState,
+	{ripple$} = useUiStore(),
 
 	FileClass = File,
 
 	fileInput$ = useTemplateRef<typeof FileInputField>('file-input'),
+
+	$props = defineProps<{
+		formTableHeight?: number | undefined,
+	}>(),
 
 	type$ = defineModel<ReqBodyType>('type', {required: true}),
 
@@ -107,7 +121,7 @@ const
 		page: number,
 	}>('form-pagination', {required: true}),
 
-	FILE_ACCEPT_OPTIONS = Object.freeze([
+	FILE_ACCEPT_OPTIONS = AppService.freeze([
 		{icon: 'mdi-file-multiple-outline', label: 'All files', value: '*/*'},
 		{icon: 'mdi-image-outline', label: 'Images', value: 'image/*'},
 		{icon: 'mdi-video-outline', label: 'Videos', value: 'video/*'},

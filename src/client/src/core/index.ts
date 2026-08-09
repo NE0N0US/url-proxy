@@ -4,4 +4,4 @@ export * from './composables'
 export * from './stores'
 
 export * from './app-service'
-export * from './app-state'
+export * from './curl-service'

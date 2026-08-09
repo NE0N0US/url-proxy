@@ -55,10 +55,10 @@
 <script setup lang="ts">
 import {ref, useTemplateRef, watch} from 'vue'
 import {type QInput} from 'quasar'
-import {AppState, MenuItem} from '@'
+import {AppService, MenuItem, useUiStore} from '@'
 
 const
-	{ripple$} = AppState,
+	{ripple$} = useUiStore(),
 
 	input$ = useTemplateRef<QInput>('input'),
 	width$ = ref(0),
@@ -84,7 +84,7 @@ const
 		method$.value = value.replace(/[^a-zA-Z]/g, '').toUpperCase(),
 	{immediate: true}),
 
-	METHODS = Object.freeze([
+	METHODS = AppService.freeze([
 		{icon: 'mdi-download', value: 'GET'},
 		{icon: 'mdi-upload', value: 'POST'},
 		{icon: 'mdi-file-replace-outline', value: 'PUT'},

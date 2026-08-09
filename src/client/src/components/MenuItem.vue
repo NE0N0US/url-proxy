@@ -26,10 +26,10 @@
 </template>
 
 <script setup lang="ts">
-import {AppState} from '@'
+import {useUiStore} from '@'
 
 const
-	{ripple$} = AppState,
+	{ripple$} = useUiStore(),
 
 	$props = defineProps<{
 		icon?: string | undefined,

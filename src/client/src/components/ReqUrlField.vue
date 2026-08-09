@@ -30,10 +30,10 @@
 import {computed, useTemplateRef} from 'vue'
 import {type QInput} from 'quasar'
 import {useEventListener} from '@vueuse/core'
-import {AppState} from '@'
+import {useUiStore} from '@'
 
 const
-	{ripple$} = AppState,
+	{ripple$} = useUiStore(),
 
 	input$ = useTemplateRef<QInput>('input'),
 

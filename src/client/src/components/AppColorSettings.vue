@@ -207,10 +207,10 @@
 import {computed} from 'vue'
 import {colors} from 'quasar'
 const {luminosity} = colors
-import {AppState, AppColorSettingsPresets, useCssVarStore, CssVarStoreKey} from '@'
+import {AppColorSettingsPresets, useCssVarStore, CssVarStoreKey, useUiStore} from '@'
 
 const
-	{ripple$, colorScheme$} = AppState,
+	{ripple$, colorScheme$} = useUiStore(),
 
 	cssVarStore = useCssVarStore(),
 

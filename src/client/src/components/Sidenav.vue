@@ -17,21 +17,36 @@
 				<div class="sticky-list-header">
 					<q-item>
 						<q-item-section class="disabled-text">
-							<q-item-label lines="1">Tabs (1)</q-item-label>
+							<q-item-label lines="1">Tabs ({{reqs$.length}})</q-item-label>
 						</q-item-section>
 						<q-item-section side>
 							<div class="q-ma-sm-minus row no-wrap gap-sm text-text">
-								<q-btn icon="mdi-plus" flat round :ripple="ripple$"/>
-								<q-btn icon="mdi-trash-can-outline" flat round :ripple="ripple$"/>
-								<q-btn icon="mdi-content-duplicate" flat round :ripple="ripple$"/>
+								<q-btn
+									icon="mdi-plus" flat round :ripple="ripple$"
+									@click.passive="open()"
+								/>
+								<q-btn
+									icon="mdi-trash-can-outline"
+									flat round :ripple="ripple$"
+									@click.passive="close()"
+								/>
+								<q-btn
+									icon="mdi-content-duplicate" flat round :ripple="ripple$"
+									@click.passive="duplicate()"
+								/>
 							</div>
 						</q-item-section>
 					</q-item>
 					<q-separator/>
 				</div>
-				<!-- translate="no" -->
-				<menu-item label="Current Tab">
-					<q-icon name="mdi-check" color="text"/>
+				<menu-item
+					v-for="req of reqs$" :key="req.id"
+					class="artisan-mono" translate="no"
+					:label="label(req) || 'New Tab'"
+					@click.passive="open(req)"
+				>
+					<q-icon v-if="req === req$" name="mdi-check" color="text"/>
+					<q-spinner-dots v-else-if="req.fetching" size="24px" color="text"/>
 				</menu-item>
 			</q-list>
 		</div>
@@ -41,10 +56,12 @@
 
 <script setup lang="ts">
 import {computed} from 'vue'
-import {AppState, MenuItem} from '@'
+import {MenuItem, Req, useReqStore, useUiStore} from '@'
 
 const
-	{ripple$} = AppState,
+	{req$, reqs$, open, close, duplicate} = useReqStore(),
+
+	{ripple$} = useUiStore(),
 
 	$props = defineProps<{
 		breakpoint?: number | undefined,
@@ -55,4 +72,8 @@ const
 	breakpoint$ = computed(() => $props.breakpoint ?? Infinity),
 
 	drawer$ = defineModel<boolean>({required: true})
+
+function label(req: Req) {
+	return (req.method === 'GET' ? '' : `${req.method} `) + req.url
+}
 </script>

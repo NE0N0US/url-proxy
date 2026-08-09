@@ -1,11 +1,11 @@
 <template>
 <div class="artisan-file-input-field min-width">
 	<q-file
+		v-bind="$attrs"
 		class="fit overflow-hidden"
 		ref="input"
 		name="file"
 		:multiple="Array.isArray(value$)"
-		:accept="accept"
 		:label="hideLabel ? undefined : Array.isArray(value$) ? 'Files' : 'File'"
 		v-model="value$"
 		borderless hide-bottom-space dense
@@ -52,7 +52,7 @@
 			transition-show="fade" transition-hide="fade"
 		>
 			<div class="tooltip column no-wrap gap-sm" translate="no">
-				<span v-for="name of names$">
+				<span v-for="name of names$" :key="name">
 					{{name}}
 				</span>
 			</div>
@@ -86,22 +86,23 @@
 </style>
 
 <script setup lang="ts">
-import {computed, ref, useTemplateRef} from 'vue'
+import {computed, ref, useAttrs, useTemplateRef} from 'vue'
 import {format, type QFile, type QTooltip} from 'quasar'
 const {humanStorageSize} = format
 import {useMouseInElement} from '@vueuse/core'
-import {AppState} from '@'
+import {useUiStore} from '@'
 
 const
-	{ripple$} = AppState,
+	{ripple$} = useUiStore(),
 
 	input$ = useTemplateRef<typeof QFile>('input'),
 
 	$props = defineProps<{
-		accept?: string | undefined,
 		hideLabel?: boolean | undefined,
 		required?: boolean | undefined,
 	}>(),
+
+	$attrs = useAttrs(),
 
 	$emit = defineEmits<{
 		'error': [],

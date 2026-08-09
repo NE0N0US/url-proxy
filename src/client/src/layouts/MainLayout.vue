@@ -16,11 +16,7 @@
 						/>
 						<q-toolbar-title>Request</q-toolbar-title>
 						<div class="row no-wrap gap-sm">
-							<q-btn
-								icon="mdi-dots-vertical"
-								:disable="collapse$ === 'start'"
-								flat round :ripple="ripple$"
-							>
+							<q-btn icon="mdi-dots-vertical" flat round :ripple="ripple$">
 								<q-menu
 									auto-close
 									anchor="bottom right" self="top right" :offset="[96, 0]"
@@ -32,59 +28,60 @@
 											icon="mdi-fullscreen"
 											label="Fullscreen URL Editor…"
 											caption="Open URL in fullscreen editor"
-											:disable="fetching$ || reqParamsTextMode$"
-										/>
-										<menu-item
-											icon="mdi-restore"
-											label="Reset"
-											caption="Cancel request and restore initial state"
-											@click.passive="reset()"
+											:disable="req$.fetching || req$.params.textMode"
+											@click.passive="fullscreenUrl()"
 										/>
 										<menu-item
 											icon="mdi-link-variant"
 											label="Copy URL"
 											caption="Copy encoded request URL to clipboard"
-											:disable="!reqUrlValid$"
+											:disable="!req$.urlValid"
+											@click.passive="copyUrl()"
 										/>
 										<menu-item
 											icon="mdi-console-line"
 											label="Copy as cURL"
 											caption="Copy cURL command to clipboard"
-											:disable="!reqUrlValid$"
+											:disable="!req$.urlValid"
+											@click.passive="copyCurl()"
 										/>
 										<menu-item
 											icon="mdi-file-download-outline"
 											label="Send and Download"
 											caption="Download response without displaying body"
-											:disable="!(reqUrlValid$ && !fetching$ && !reqParamsTextMode$)"
+											:disable="!(req$.urlValid && !req$.fetching && !req$.params.textMode)"
 											@click.passive="send('download')"
 										/>
 										<menu-item
 											icon="mdi-repeat"
 											label="Send Repeatedly"
 											caption="Repeat request after each response"
-											:disable="!(reqUrlValid$ && !fetching$ && !reqParamsTextMode$)"
+											:disable="!(req$.urlValid && !req$.fetching && !req$.params.textMode)"
 											@click.passive="send('repeat')"
 										/>
 										<menu-item
 											icon="mdi-cookie-outline"
 											label="Cookies…"
 											caption="Manage this page's cookies"
+											@click.passive="openCookies()"
 										/>
 										<menu-item
 											icon="mdi-swap-horizontal"
 											label="Encode and Decode…"
 											caption="QR, Punycode, percent-encoding, Base64"
+											@click.passive="openEncodeAndDecode()"
 										/>
 										<menu-item
 											icon="mdi-file-multiple-outline"
 											label="Examples…"
 											caption="Browse request examples"
+											@click.passive="openExamples()"
 										/>
 										<menu-item
 											icon="mdi-information-outline"
 											label="About…"
 											caption="About URL Artisan"
+											@click.passive="openAbout()"
 										/>
 									</q-list>
 								</q-menu>
@@ -109,25 +106,25 @@
 				</template>
 				<template #content-start>
 					<div class="full-width grow column no-wrap overflow-hidden">
-						<div class="url-field-pair row no-wrap" :class="{'cursor-not-allowed': fetching$}">
+						<div class="url-field-pair row no-wrap" :class="{'cursor-not-allowed': req$.fetching}">
 							<http-method-field
 								class="no-shrink"
-								:disable="fetching$ || reqParamsTextMode$"
+								:disable="req$.fetching || req$.params.textMode"
 								:offset-x="4"
-								v-model="reqMethod$"
-								@blur="reqMethod$ = 'GET'"
+								v-model="req$.method"
+								@blur="req$.method = 'GET'"
 								@enter="urlInput$?.focus()"
 							/>
 							<q-separator vertical/>
 							<req-url-field
 								class="grow"
 								ref="url-input"
-								:valid="reqUrlValid$"
-								:fetching="fetching$"
-								:disable="reqParamsTextMode$"
-								v-model="reqUrl$"
-								@paste="handlePasteCurl($event)"
-								@start="send()" @stop="fetching$ = false"
+								:valid="req$.urlValid"
+								:fetching="req$.fetching"
+								:disable="req$.params.textMode"
+								v-model="req$.url"
+								@paste="pasteCurl($event)"
+								@start="send()" @stop="req$.fetching = false"
 							/>
 						</div>
 						<q-separator/>
@@ -138,29 +135,29 @@
 									mobile-arrows
 									:align="$q.screen.width >= 600 ? 'left' : 'justify'"
 									narrow-indicator inline-label no-caps
-									v-model="reqTab$"
+									v-model="req$.tab"
 								>
 									<q-tab
 										icon="mdi-magnify"
 										label="Params"
-										:alert="!!(reqParamsTextValue$ || reqParams$.length)"
-										:alert-icon="reqParamsTextValue$ ? 'mdi-content-save-edit-outline' : undefined"
+										:alert="!!(req$.params.textValue || req$.params.rows.length)"
+										:alert-icon="req$.params.textValue ? 'mdi-content-save-edit-outline' : undefined"
 										name="params"
 										:ripple="ripple$"
 									/>
 									<q-tab
 										icon="mdi-table"
 										label="Headers"
-										:alert="!!(reqHeadersTextValue$ || reqHeaders$.length)"
-										:alert-icon="reqHeadersTextValue$ ? 'mdi-content-save-edit-outline' : undefined"
+										:alert="!!(req$.headers.textValue || req$.headers.rows.length)"
+										:alert-icon="req$.headers.textValue ? 'mdi-content-save-edit-outline' : undefined"
 										name="headers"
 										:ripple="ripple$"
 									/>
 									<q-tab
 										icon="mdi-text-box-outline"
 										label="Body"
-										:alert="!!(reqBodyFormTextValue$ || reqBody$ && (reqBody$ as any)?.length !== 0)"
-										:alert-icon="reqBodyFormTextValue$ ? 'mdi-content-save-edit-outline' : undefined"
+										:alert="!!(req$.body.formTextValue || req$.body.value && (req$.body.value as any)?.length !== 0)"
+										:alert-icon="req$.body.formTextValue ? 'mdi-content-save-edit-outline' : undefined"
 										name="body"
 										:ripple="ripple$"
 									/>
@@ -173,40 +170,40 @@
 									/>
 								</q-tabs>
 								<q-separator/>
-								<div class="grow column no-wrap" :class="{'cursor-not-allowed': fetching$}">
+								<div class="grow column no-wrap" :class="{'cursor-not-allowed': req$.fetching}">
 									<q-tab-panels
 										class="grow bg-background text-text"
-										:inert="fetching$"
+										:inert="req$.fetching"
 										:keep-alive="false"
-										v-model="reqTab$"
+										v-model="req$.tab"
 									>
 										<q-tab-panel class="overflow-hidden q-pa-none" name="params">
 											<req-kv-table
 												class="fit"
-												v-model:text-mode="reqParamsTextMode$"
-												v-model:text-value="reqParamsTextValue$"
-												v-model="reqParams$"
-												v-model:pagination="reqParamsPagination$"
+												v-model:text-mode="req$.params.textMode"
+												v-model:text-value="req$.params.textValue"
+												v-model="req$.params.rows"
+												v-model:pagination="req$.params.pagination"
 											/>
 										</q-tab-panel>
 										<q-tab-panel class="overflow-hidden q-pa-none" name="headers">
 											<req-kv-table
 												class="fit"
-												v-model:text-mode="reqHeadersTextMode$"
-												v-model:text-value="reqHeadersTextValue$"
-												v-model="reqHeaders$"
-												v-model:pagination="reqHeadersPagination$"
+												v-model:text-mode="req$.headers.textMode"
+												v-model:text-value="req$.headers.textValue"
+												v-model="req$.headers.rows"
+												v-model:pagination="req$.headers.pagination"
 											/>
 										</q-tab-panel>
 										<q-tab-panel class="overflow-hidden q-pa-none" name="body">
 											<req-body-form
 												class="fit"
-												v-model:type="reqBodyType$"
-												v-model:form-text-mode="reqBodyFormTextMode$"
-												v-model:form-text-value="reqBodyFormTextValue$"
-												v-model:file-accept="reqBodyFileAccept$"
-												v-model="reqBody$"
-												v-model:form-pagination="reqBodyFormPagination$"
+												v-model:type="req$.body.type"
+												v-model:form-text-mode="req$.body.formTextMode"
+												v-model:form-text-value="req$.body.formTextValue"
+												v-model:file-accept="req$.body.fileAccept"
+												v-model="req$.body.value"
+												v-model:form-pagination="req$.body.pagination"
 											/>
 										</q-tab-panel>
 										<q-tab-panel class="overflow-hidden q-pa-none" name="options">
@@ -214,7 +211,7 @@
 												class="fit"
 												:disable-extract="disableExtract$"
 												:table-height="reqTabHeight$"
-												v-model="reqOptions$"
+												v-model="req$.options"
 											/>
 										</q-tab-panel>
 									</q-tab-panels>
@@ -257,106 +254,73 @@
 
 <script setup lang="ts">
 import {computed, ref, useTemplateRef} from 'vue'
+import {copyToClipboard} from 'quasar'
 import {useTitle} from '@vueuse/core'
 import {toUnicode} from 'punycode'
 import {
-	AppState,
 	AppService,
+	CurlService,
 	Sidenav,
 	SplitterAccordion,
 	MenuItem,
 	AppColorSettings,
 	HttpMethodField,
+	Req,
 	ReqUrlField,
 	ReqKvTable,
 	ReqBodyForm,
 	ReqOptionsForm,
-	ReqBodyType,
-	ReqOptions,
+	useReqStore,
+	useUiStore,
 } from '@'
 
-// #region - state
-
 const
-	{reqMethod$, reqUrl$, reqUrlValid$, reqParams$, reqHeaders$,
-		reqBodyType$, reqBody$, reqOptions$, fetching$, ripple$} = AppState,
+	{req$} = useReqStore(),
+	{ripple$} = useUiStore(),
 
 	urlInput$ = useTemplateRef<typeof ReqUrlField>('url-input'),
-
 	reqTabHeight$ = ref(0),
 
-	loading$ = ref(false),
 	drawer$ = ref(false),
 	collapse$ = ref<null | 'start' | 'end'>('end'),
-	reqTab$ = ref('params'),
-	reqParamsTextMode$ = ref(false),
-	reqParamsTextValue$ = ref(''),
-	reqParamsPagination$ = ref({page: 1, rowsPerPage: 1}),
-	reqHeadersTextMode$ = ref(false),
-	reqHeadersTextValue$ = ref(''),
-	reqHeadersPagination$ = ref({page: 1, rowsPerPage: 1}),
-	reqBodyFormTextMode$ = ref(false),
-	reqBodyFormTextValue$ = ref(''),
-	reqBodyFormPagination$ = ref({page: 1, rowsPerPage: 1}),
-	reqBodyFileAccept$ = ref('*/*')
+	loading$ = ref(false),
 
-function reset() {
-	reqMethod$.value = 'GET'
-	reqUrl$.value = ''
-	reqTab$.value = 'params'
-	reqParams$.value = []
-	reqParamsTextMode$.value = false
-	reqParamsTextValue$.value = ''
-	reqParamsPagination$.value = {page: 1, rowsPerPage: 1}
-	reqHeaders$.value = []
-	reqHeadersTextMode$.value = false
-	reqHeadersTextValue$.value = ''
-	reqHeadersPagination$.value = {page: 1, rowsPerPage: 1}
-	reqBodyType$.value = ReqBodyType.NONE
-	reqBody$.value = null
-	reqBodyFormTextMode$.value = false
-	reqBodyFormTextValue$.value = ''
-	reqBodyFormPagination$.value = {page: 1, rowsPerPage: 1}
-	reqBodyFileAccept$.value = '*/*'
-	reqOptions$.value = new ReqOptions()
-	fetching$.value = false
-}
-
-// #endregion
-
-const
-	SIDENAV_BP = 1_800,
-
-	title$ = useTitle(() => 'URL Artisan' + (reqUrlValid$.value ? `: ${
+	title$ = useTitle(() => 'URL Artisan' + (req$.value.urlValid ? `: ${
 		decodeURI(toUnicode(new URL(
-			AppService.resolveUrl(reqUrl$.value)
+			AppService.resolveUrl(req$.value.url)
 		).hostname))
 	}` : '')),
 
 	disableExtract$ = computed(() =>
-		!reqParams$.value.some(({disable, key, value}) => !disable && key === 'url' && value)
-	)
+		!req$.value.params.rows.some(({disable, key, value}) => !disable && key === 'url' && value)
+	),
 
-function handlePasteCurl(event: ClipboardEvent) {
+	SIDENAV_BP = 1_800
+
+// TODO: implement functions
+
+function fullscreenUrl() {}
+
+async function copyUrl() {
+	const url = (await req$.value.urlFull)!
+	await copyToClipboard(url)
+}
+
+async function copyCurl() {
+	const curl = await CurlService.toCurl(req$.value)
+	await copyToClipboard(curl)
+}
+
+function pasteCurl(event: ClipboardEvent) {
 	const text = event.clipboardData?.getData('text')
-	console.log(text)
-	// if (text)
-	// 	event.preventDefault()
+	if (text?.trim().match(/^curl(\s|\\)/)) {
+		event.preventDefault()
+		req$.value = CurlService.fromCurl(text)
+	}
 }
 
-function send(command?: 'download' | 'repeat') {
-	fetching$.value = true
-}
-
-// #region - TODO: remove mock
-
-reqUrl$.value = 'https://chatgpt.com/?temporary-chat=true'
-reqHeaders$.value = Array(500).fill(null).map(() => ({
-	disable: Math.random() > 0.5,
-	key: randomString(80),
-	value: randomString(80),
-}))
-reqOptions$.value!.curlProxy.server.value = AppService.resolveUrl('/')
+function openCookies() {}
+function openEncodeAndDecode() {}
 
 function randomString(bytes: number) {
 	let result = ''
@@ -366,22 +330,33 @@ function randomString(bytes: number) {
 			.replace(/\s/g, '')
 	return result.slice(0, bytes)
 }
+function openExamples() {
+	req$.value = new Req()
+	req$.value.url = 'https://chatgpt.com/?temporary-chat=true'
+	req$.value.headers.rows = Array(500).fill(null).map(() => ({
+		disable: Math.random() > 0.5,
+		key: randomString(80),
+		value: randomString(80),
+	}))
+}
 
-// #endregion
+function openAbout() {}
 
-/** TODO:
+// TODO: alert on method/override=get/options with request/options body
+function send(command?: 'download' | 'repeat') {
+	req$.value.fetching = true
+}
 
-* https://vueuse.org/core/useVModel/ (deep)
-* deep Object.freeze util
-* AppState class => req / ui composables, syncRef
-* disable request/options body for get/options?
-* tabs: "(3..2..1) tab closed. undo?", prepend width method if not GET; fetching is parallel; replace state on sync, add on open, find or create tab on nav, QSpinnerDots
+/* TODO:
+
+* notify errors
+* JS/JSON/XML editor: https://codemirror.net/, minify/beautify
 
 * min 320x320
 * conditionally confirm page reload
-* [accesskey] & keyboard shortcuts (https://vueuse.org/core/useMagicKeys/) menu item, keyboard flow (next on enter)
 * fullscreenable: https://vueuse.org/core/useFullscreen/
-* copy: https://vueuse.org/core/useClipboard/
+* [accesskey] & keyboard shortcuts (https://vueuse.org/core/useMagicKeys/) menu item, keyboard flow (next on enter)
+
 * cookies: https://developer.mozilla.org/en-US/docs/Web/API/Document/cookie#notes
 * header from body (application/x-www-form-urlencoded, JS, JSON, XML)
 * cache: no-store

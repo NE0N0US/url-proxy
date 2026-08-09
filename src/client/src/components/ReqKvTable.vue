@@ -6,13 +6,14 @@
 	:shadow-text="text$ ? ' ' : 'Cells separated by newlines\nRows separated by blank lines\nRows commented out with //'"
 	autogrow
 	v-model="text$"
+	:readonly="readonly"
 	borderless hide-bottom-space dense
 	input-class="artisan-mono"
 	@keydown.shift.enter.passive="saveText()"
 >
 	<template #after>
 		<q-btn
-			icon="mdi-content-save-outline"
+			:icon="readonly ? 'mdi-arrow-left' : 'mdi-content-save-outline'"
 			:disable="false"
 			flat round color="text" :ripple="ripple$"
 			@click.passive="saveText()"
@@ -38,7 +39,7 @@
 			<q-th auto-width :props="props">
 				<q-checkbox
 					v-model="rowsEnable$"
-					:disable="!rows$.length || !!pagination$.filter?.query"
+					:disable="readonly || !rows$.length || !!pagination$.filter?.query"
 					color="text"
 				/>
 			</q-th>
@@ -64,6 +65,7 @@
 						v-if="props.row !== ghostRow"
 						v-model="props.row[props.col.name]"
 						:true-value="false" :false-value="true"
+						:disable="readonly"
 						color="text"
 					/>
 				</template>
@@ -72,6 +74,7 @@
 						v-if="multipartForm && props.col.name === 'value' && Array.isArray(props.row.value)"
 						:ref="input => storeInput(props.col.name, props.rowIndex, input)"
 						v-model="props.row.value"
+						:readonly="readonly"
 					>
 						<template #after/>
 					</file-input-field>
@@ -82,7 +85,8 @@
 						:ref="input => storeInput(props.col.name, props.rowIndex, input)"
 						:shadow-text="props.row[props.col.name] ? ' ' : props.col.label"
 						v-model="props.row[props.col.name]"
-						:disable="props.row === ghostRow && !!pagination$.filter?.query"
+						:disable="!readonly && props.row === ghostRow && !!pagination$.filter?.query"
+						:readonly="readonly"
 						borderless hide-bottom-space dense
 						input-class="artisan-mono"
 					/>
@@ -91,12 +95,13 @@
 					<q-btn
 						v-if="multipartForm"
 						:icon="Array.isArray(props.row.value) ? 'mdi-paperclip-remove' : 'mdi-paperclip'"
+						:disable="readonly"
 						flat round color="text" :ripple="ripple$"
 						@click.passive="switchValueInput(props.rowIndex)"
 					/>
 					<q-btn
 						:icon="props.row !== ghostRow ? 'mdi-trash-can-outline' : 'mdi-plus'"
-						:disable="props.row === ghostRow && !!pagination$.filter?.query"
+						:disable="readonly || props.row === ghostRow && !!pagination$.filter?.query"
 						flat round color="text" :ripple="ripple$"
 						@click.passive="props.row !== ghostRow ? rows$.splice(props.rowIndex, 1) : addRow()"
 					/>
@@ -171,6 +176,12 @@
 	}
 }
 
+.q-table__container :deep(th.sortable):focus-visible {
+	outline: none;
+	background-color: var(--color-text);
+	color: var(--color-background);
+}
+
 .q-table__container :deep(.q-table__bottom) {
 	border-top: none;
 	min-height: 0;
@@ -191,10 +202,10 @@ import {computed, nextTick, ref, watch} from 'vue'
 import {debounce, type QResizeObserver, type QTable} from 'quasar'
 import {syncRef, useFocusWithin} from '@vueuse/core'
 import fuzzysort from 'fuzzysort'
-import {AppState, FileInputField, type ReqKV} from '@'
+import {FileInputField, useUiStore, type ReqKV} from '@'
 
 const
-	{ripple$} = AppState,
+	{ripple$} = useUiStore(),
 
 	table$ = ref<QTable>(),
 
@@ -205,6 +216,7 @@ const
 	resize$ = ref<QResizeObserver>(),
 
 	$props = defineProps<{
+		readonly?: boolean | undefined,
 		multipartForm?: boolean | undefined,
 		hideColumns?: string[] | string | undefined,
 		tableHeight?: number | undefined,
@@ -249,7 +261,7 @@ const
 
 	watcherDeepModel = watch(rows$, (value, oldValue) => {
 		if (value === oldValue)
-			rows$.value = [...value]
+			rows$.value = [...rows$.value]
 	}, {deep: true}),
 
 	watcherTextMode = watch(textMode$, (value, oldValue) => {

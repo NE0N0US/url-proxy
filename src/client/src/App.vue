@@ -5,7 +5,7 @@
 <script setup lang="ts">
 import {computed, onErrorCaptured, watch} from 'vue'
 import {useEventListener, useFavicon} from '@vueuse/core'
-import {AppState, useAppPersistence, useCssVars} from '@'
+import {useAppPersistence, useCssVars, useUiStore} from '@'
 
 // https://vuejs.org/api/options-lifecycle.html#errorcaptured
 onErrorCaptured((error, _component, info) => {
@@ -28,7 +28,7 @@ const
 
 	persistance = useAppPersistence(),
 
-	watcherColorScheme = watch(AppState.colorScheme$, (value, oldValue) =>
+	watcherColorScheme = watch(useUiStore().colorScheme$, (value, oldValue) =>
 		document.documentElement.classList.replace('artisan-' + oldValue, 'artisan-' + value)
 	),
 

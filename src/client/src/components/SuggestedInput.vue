@@ -27,6 +27,7 @@
 				<q-menu
 					auto-close
 					:offset="[width$ - 40 - (offsetX ?? 0), 0]"
+					max-width="100dvw"
 					transition-show="none" transition-hide="none"
 					@before-show="valueLast$ = value$"
 				>
@@ -55,10 +56,10 @@
 <script setup lang="ts">
 import {ref, useAttrs, useTemplateRef} from 'vue'
 import {type QInput, type VueClassProp} from 'quasar'
-import {AppState, MenuItem} from '@'
+import {MenuItem, useUiStore} from '@'
 
 const
-	{ripple$} = AppState,
+	{ripple$} = useUiStore(),
 
 	input$ = useTemplateRef<QInput>('input'),
 	width$ = ref(0),

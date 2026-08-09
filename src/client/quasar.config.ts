@@ -21,6 +21,7 @@ export default defineConfig(ctx => {
 			open: false
 		},
 		build: {
+			allowOutsideProjectDistDir: true,
 			distDir: '../../dist/url-artisan',
 			publicPath: '/url-artisan',
 			vueRouterMode: 'hash',
