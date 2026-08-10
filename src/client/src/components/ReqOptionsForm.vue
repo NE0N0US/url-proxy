@@ -43,7 +43,7 @@
 			label="Extract cURL Proxy options from URL"
 			caption="Parse cURL Proxy URL into original URL and options"
 			:disable="disableExtract"
-			@click="$emit('extract')"
+			@click="$emit('extractCurlProxy')"
 		/>
 	</q-list>
 	<q-input
@@ -370,7 +370,7 @@ const
 	}>(),
 
 	$emits = defineEmits<{
-		extract: [],
+		extractCurlProxy: [],
 	}>(),
 
 	options$ = defineModel<ReqOptions>({required: true}),

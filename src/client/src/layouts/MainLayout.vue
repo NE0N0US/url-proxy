@@ -164,7 +164,9 @@
 									<q-tab
 										icon="mdi-tune-variant"
 										label="Options"
-										:alert="true"
+										:alert="!!(req$.options.includeCredentials || req$.options.followRedirects ||
+											req$.options.integrityHashes.value && !req$.options.integrityHashes.disable ||
+											req$.options.curlProxy.server.value && !req$.options.curlProxy.server.disable)"
 										name="options"
 										:ripple="ripple$"
 									/>
@@ -212,6 +214,7 @@
 												:disable-extract="disableExtract$"
 												:table-height="reqTabHeight$"
 												v-model="req$.options"
+												@extract-curl-proxy="extractCurlProxy()"
 											/>
 										</q-tab-panel>
 									</q-tab-panels>
@@ -254,7 +257,7 @@
 
 <script setup lang="ts">
 import {computed, ref, useTemplateRef} from 'vue'
-import {copyToClipboard} from 'quasar'
+import {copyToClipboard, useQuasar} from 'quasar'
 import {useTitle} from '@vueuse/core'
 import {toUnicode} from 'punycode'
 import {
@@ -275,6 +278,7 @@ import {
 } from '@'
 
 const
+	$q = useQuasar(),
 	{req$} = useReqStore(),
 	{ripple$} = useUiStore(),
 
@@ -302,20 +306,38 @@ const
 function fullscreenUrl() {}
 
 async function copyUrl() {
-	const url = (await req$.value.urlFull)!
-	await copyToClipboard(url)
+	try {
+		const url = (await req$.value.urlFull)!
+		await copyToClipboard(url)
+	}
+	catch (error) {
+		console.error(error)
+		$q.notify('Error copying URL')
+	}
 }
 
 async function copyCurl() {
-	const curl = await CurlService.toCurl(req$.value)
-	await copyToClipboard(curl)
+	try {
+		const curl = await CurlService.toCurl(req$.value)
+		await copyToClipboard(curl)
+	}
+	catch (error) {
+		console.error(error)
+		$q.notify('Error copying cURL command')
+	}
 }
 
 function pasteCurl(event: ClipboardEvent) {
-	const text = event.clipboardData?.getData('text')
-	if (text?.trim().match(/^curl(\s|\\)/)) {
-		event.preventDefault()
-		req$.value = CurlService.fromCurl(text)
+	try {
+		const text = event.clipboardData?.getData('text')
+		if (text?.trim().match(/^curl(\s|\\)/)) {
+			event.preventDefault()
+			req$.value = CurlService.fromCurl(text)
+		}
+	}
+	catch (error) {
+		console.error(error)
+		$q.notify('Error pasting cURL command')
 	}
 }
 
@@ -331,7 +353,7 @@ function randomString(bytes: number) {
 	return result.slice(0, bytes)
 }
 function openExamples() {
-	req$.value = new Req()
+	Object.assign(req$.value, new Req())
 	req$.value.url = 'https://chatgpt.com/?temporary-chat=true'
 	req$.value.headers.rows = Array(500).fill(null).map(() => ({
 		disable: Math.random() > 0.5,
@@ -342,14 +364,25 @@ function openExamples() {
 
 function openAbout() {}
 
-// TODO: alert on method/override=get/options with request/options body
 function send(command?: 'download' | 'repeat') {
-	req$.value.fetching = true
+	const
+		req = req$.value,
+		method = req.options.curlProxy.method || req.method,
+		hasBody = !!req.body.value && (req.body.value as any)?.length !== 0,
+		hasCurlProxy = !!(req.options.curlProxy.server.value && !req.options.curlProxy.server.disable),
+		hasCurlProxyBody = hasCurlProxy &&
+			!!req.options.curlProxy.body.value &&
+			(req.options.curlProxy.body.value as any)?.length !== 0
+	if (['GET', 'OPTIONS'].includes(method) && hasBody || hasCurlProxyBody)
+		$q.notify(method + ' request cannot have a body')
+	else
+		req$.value.fetching = true
 }
+
+function extractCurlProxy() {}
 
 /* TODO:
 
-* notify errors
 * JS/JSON/XML editor: https://codemirror.net/, minify/beautify
 
 * min 320x320

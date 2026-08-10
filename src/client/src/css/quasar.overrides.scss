@@ -103,7 +103,7 @@
 		opacity: 1;
 	}
 
-	.q-drawer, .q-menu, .q-tooltip {
+	.q-drawer, .q-menu, .q-tooltip, .q-notification {
 		background-color: var(--color-background);
 		box-shadow: none;
 		border-color: var(--color-border);
@@ -117,13 +117,30 @@
 		}
 	}
 
-	.q-menu, .q-tooltip {
+	.q-menu, .q-tooltip, .q-notification {
 		border: 1px solid var(--color-border);
 		color: var(--color-text);
 
 		&.q-tooltip {
 			padding: 8px 12px;
 			pointer-events: all !important;
+		}
+
+		&.q-notification {
+			min-height: 50px;
+			user-select: none;
+
+			.q-notification__progress {
+				left: -12px;
+				right: -12px;
+				border-radius: 0;
+				height: 4px;
+				opacity: 1;
+			}
+
+			.q-notification__badge {
+				box-shadow: none;
+			}
 		}
 	}
 

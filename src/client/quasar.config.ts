@@ -14,6 +14,23 @@ export default defineConfig(ctx => {
 		framework: {
 			iconSet: 'mdi-v7',
 			plugins: ['Dialog', 'Notify'],
+			config: {
+				notify: {
+					color: 'background',
+					textColor: 'text',
+					icon: 'mdi-message-alert-outline',
+					position: 'top',
+					progress: true,
+					badgeColor: 'text',
+					badgeTextColor: 'background',
+					badgePosition: 'top-right',
+					actions: [{
+						icon: 'mdi-close',
+						color: 'text',
+						round: true,
+					}],
+				},
+			},
 		},
 		devServer: {
 			host: '0.0.0.0',

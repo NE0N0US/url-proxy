@@ -6,16 +6,26 @@ function shellQuote(value: string) {
 	return '\'' + value.replace(/'/g, '\'\\\'\'') + '\''
 }
 
+enum CurlParam {
+	REDIRECT = '-L',
+	URL = '--url',
+	METHOD = '-X',
+	HEADER = '-H',
+	BODY_TEXT = '--data-raw',
+	BODY_FORM_URLENCODE = '--data-urlencode',
+	BODY_FORM_MULTIPART = '-F',
+}
+
 export class CurlService {
 	static async toCurl(req: Req) {
 		const args: string[] = ['curl']
 		if (req.options.followRedirects)
-			args[0] += ' -L'
-		args.push('--url ' + shellQuote((await req.urlFull)!))
-		args.push('-X ' + shellQuote(req.method))
+			args[0] += ' ' + CurlParam.REDIRECT
+		args.push(CurlParam.URL + ' ' + shellQuote((await req.urlFull)!))
+		args.push(CurlParam.METHOD + ' ' + shellQuote(req.method))
 		args.push(...req.headers.rows
 			.filter(({disable, key}) => !disable && key)
-			.map(({key, value}) => '-H ' + shellQuote(`${key}: ${value}`))
+			.map(({key, value}) => CurlParam.HEADER + ' ' + shellQuote(`${key}: ${value}`))
 		)
 		switch (req.body.type) {
 			case ReqBodyType.TEXT:
@@ -23,11 +33,11 @@ export class CurlService {
 				const text = req.body.type === ReqBodyType.TEXT
 					? req.body.value as string
 					: '@' + (req.body.value as File).name
-				args.push('--data-raw ' + shellQuote(text))
+				args.push(CurlParam.BODY_TEXT + ' ' + shellQuote(text))
 				if (!req.headers.rows.some(({disable, key}) =>
 					!disable && key.toLowerCase() === 'content-type'
 				))
-					args.push('-H ' + shellQuote('Content-Type: text/plain'))
+					args.push(CurlParam.HEADER + ' ' + shellQuote('Content-Type: text/plain'))
 				break
 			case ReqBodyType.FORM_URLENCODED:
 			case ReqBodyType.FORM_MULTIPART:
@@ -38,8 +48,9 @@ export class CurlService {
 						: [[key, value]]
 					)
 				args.push(...fields.map(([key, value]) => (req.body.type === ReqBodyType.FORM_URLENCODED
-					? '--data-urlencode ' : '-F ') + shellQuote(`${key}=${value}`)
-				))
+					? CurlParam.BODY_FORM_URLENCODE
+					: CurlParam.BODY_FORM_MULTIPART
+				) + ' ' + shellQuote(`${key}=${value}`)))
 				break
 		}
 		return args.join(' \\\n\t')

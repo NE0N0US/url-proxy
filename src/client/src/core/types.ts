@@ -1,3 +1,4 @@
+import {SearchParam} from '../../../lib/proxy/params'
 import {AppService} from '@'
 
 /** params, headers*, application/x-www-form-urlencoded, multipart/form-data */
@@ -148,7 +149,7 @@ async function getFullUrl(req: Req) {
 				headersAll: {headers, delHeaders, resHeaders, delResHeaders},
 				body: {type: bodyType, value: body},
 			} = req.options.curlProxy,
-			params: [string, string][] = [['url', url]]
+			params: [string, string][] = [[SearchParam.URL, url]]
 		if (server.disable || !server.value)
 			return url
 		// urls
@@ -156,39 +157,39 @@ async function getFullUrl(req: Req) {
 			params.push(...urls.value
 				.split('\n')
 				.filter(line => line)
-				.map(url => ['url', url] as [string, string])
+				.map(url => [SearchParam.URL, url] as [string, string])
 			)
 		// flags
 		;[
-			['fastest', fastest],
-			['renresheaders', renResHeaders],
-			['skipdefaults', skipDefaults],
+			[SearchParam.FASTEST, fastest],
+			[SearchParam.REN_RES_HEADERS, renResHeaders],
+			[SearchParam.SKIP_DEFAULTS, skipDefaults],
 		].forEach(([key, value]) => {
 			if (value)
 				params.push([key as string, ''])
 		})
 		// primitives
 		;[
-			['retry', retry],
-			['retryin', retryIn],
-			['retryfactor', retryFactor],
-			['retrylimit', retryLimit],
-			['timeout', timeout],
-			['ttfb', ttfb],
-			['throttle', throttle],
-			['throttleup', throttleUp],
-			['status', status],
-			['statustext', statusText],
-			['method', method],
-			['resbody', resBody],
+			[SearchParam.RETRY, retry],
+			[SearchParam.RETRY_IN, retryIn],
+			[SearchParam.RETRY_FACTOR, retryFactor],
+			[SearchParam.RETRY_LIMIT, retryLimit],
+			[SearchParam.TIMEOUT, timeout],
+			[SearchParam.TTFB, ttfb],
+			[SearchParam.THROTTLE, throttle],
+			[SearchParam.THROTTLE_UP, throttleUp],
+			[SearchParam.STATUS, status],
+			[SearchParam.STATUS_TEXT, statusText],
+			[SearchParam.METHOD, method],
+			[SearchParam.RES_BODY, resBody],
 		].forEach(([key, value]) => {
 			if (value)
 				params.push([key as string, value])
 		})
 		// objects
 		;[
-			['headers', headers],
-			['resheaders', resHeaders],
+			[SearchParam.HEADERS, headers],
+			[SearchParam.RES_HEADERS, resHeaders],
 		].forEach(([key, value]) => {
 			const entries = ((value as any).rows as ReqKV[])
 				.filter(({disable, key}) => !disable && key)
@@ -201,8 +202,8 @@ async function getFullUrl(req: Req) {
 		})
 		// arrays
 		;[
-			['delheaders', delHeaders],
-			['delresheaders', delResHeaders],
+			[SearchParam.DEL_HEADERS, delHeaders],
+			[SearchParam.DEL_RES_HEADERS, delResHeaders],
 		].forEach(([key, value]) => {
 			const keys = ((value as any).rows as ReqKV[])
 				.filter(({disable, key}) => !disable && key)
@@ -216,7 +217,7 @@ async function getFullUrl(req: Req) {
 		// body
 		const bodyString = await stringifyBody(bodyType, body)
 		if (bodyString !== undefined)
-			params.push(['body', bodyString])
+			params.push([SearchParam.BODY, bodyString])
 		return server.value + '?' + params
 			.map(([key, value]) => `${encodeURIComponent(key)}${value ? '=' : ''}${encodeURIComponent(value)}`)
 			.join('&')
