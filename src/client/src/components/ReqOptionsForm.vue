@@ -286,7 +286,7 @@
 						v-model:form-text-value="options$.curlProxy.body.formTextValue"
 						v-model:file-accept="options$.curlProxy.body.fileAccept"
 						v-model="options$.curlProxy.body.value"
-						v-model:form-pagination="options$.curlProxy.body.pagination"
+						v-model:form-pagination="options$.curlProxy.body.formPagination"
 					/>
 					<res-body-form
 						class="full-width relative-position"

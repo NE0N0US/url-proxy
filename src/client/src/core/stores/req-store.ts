@@ -1,6 +1,6 @@
-import {ref, toRef} from 'vue'
+import {computed, ref, watch} from 'vue'
 import {createSharedComposable, syncRef} from '@vueuse/core'
-import {type ReqKV, Req} from '@'
+import {AppService, type ReqKV, Req} from '@'
 
 function syncReqParams(params: ReqKV[], reqParams: URLSearchParams) {
 	const
@@ -24,14 +24,23 @@ export const useReqStore = createSharedComposable(() => {
 		req$ = ref(new Req()),
 		reqs$ = ref([req$.value]),
 
+		touched$ = ref(false),
+		watcherTouched = watch(req$, () => touched$.value = true, {deep: true}),
+
 		// #region - sync
 
-		reqUrl$ = toRef(req$.value, 'url'),
-		reqParams$ = toRef(req$.value.params, 'rows'),
+		reqUrl$ = computed({
+			get: () => req$.value.url,
+			set: value => req$.value.url = value,
+		}),
+		reqParams$ = computed({
+			get: () => req$.value.params.rows,
+			set: value => req$.value.params.rows = value,
+		}),
 		syncReq = syncRef(reqUrl$, reqParams$, {direction: 'both', transform: {
 			ltr: value => {
 				try {
-					const url = value ? new URL(value) : null
+					const url = value ? new URL(AppService.resolveUrl(value)) : null
 					return syncReqParams(reqParams$.value,
 						url?.searchParams ?? new URLSearchParams()
 					)
@@ -63,18 +72,21 @@ export const useReqStore = createSharedComposable(() => {
 		store = {
 			req$,
 			reqs$,
+			touched$,
 
 			open(req?: Req) {
+				const oldReq = req$.value
 				if (req)
 					req$.value = req
 				else {
 					const reqs = reqs$.value
 					reqs.push(
-						req$.value = Object.assign(new Req(), {
-							id: Math.max(...reqs.map(({id}) => id)) + 1,
+						req$.value = req = Object.assign(new Req(), {
+							id: Math.max(-1, ...reqs.map(({id}) => id)) + 1,
 						})
 					)
 				}
+				req.patchView(oldReq)
 			},
 
 			close() {
@@ -92,7 +104,7 @@ export const useReqStore = createSharedComposable(() => {
 						new Req(),
 						JSON.parse(JSON.stringify(req$.value)),
 						{
-							id: Math.max(...reqs.map(({id}) => id)) + 1,
+							id: Math.max(-1, ...reqs.map(({id}) => id)) + 1,
 							fetching: false,
 						} as Req
 					)

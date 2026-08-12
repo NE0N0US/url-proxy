@@ -26,10 +26,10 @@
 									<q-list class="non-selectable" padding>
 										<menu-item
 											icon="mdi-fullscreen"
-											label="Fullscreen URL Editor…"
-											caption="Open URL in fullscreen editor"
+											label="Expand URL Editor"
+											caption="Open URL in expanded editor"
 											:disable="req$.fetching || req$.params.textMode"
-											@click.passive="fullscreenUrl()"
+											@click.passive="expandUrlEditor()"
 										/>
 										<menu-item
 											icon="mdi-link-variant"
@@ -59,28 +59,32 @@
 											:disable="!(req$.urlValid && !req$.fetching && !req$.params.textMode)"
 											@click.passive="send('repeat')"
 										/>
+										<q-separator spaced/>
 										<menu-item
 											icon="mdi-cookie-outline"
-											label="Cookies…"
+											label="Cookies"
 											caption="Manage this page's cookies"
+											disable
 											@click.passive="openCookies()"
 										/>
 										<menu-item
 											icon="mdi-swap-horizontal"
-											label="Encode and Decode…"
+											label="Encode and Decode"
 											caption="QR, Punycode, percent-encoding, Base64"
+											disable
 											@click.passive="openEncodeAndDecode()"
 										/>
 										<menu-item
 											icon="mdi-file-multiple-outline"
-											label="Examples…"
+											label="Examples"
 											caption="Browse request examples"
 											@click.passive="openExamples()"
 										/>
 										<menu-item
 											icon="mdi-information-outline"
-											label="About…"
+											label="About"
 											caption="About URL Artisan"
+											disable
 											@click.passive="openAbout()"
 										/>
 									</q-list>
@@ -205,7 +209,7 @@
 												v-model:form-text-value="req$.body.formTextValue"
 												v-model:file-accept="req$.body.fileAccept"
 												v-model="req$.body.value"
-												v-model:form-pagination="req$.body.pagination"
+												v-model:form-pagination="req$.body.formPagination"
 											/>
 										</q-tab-panel>
 										<q-tab-panel class="overflow-hidden q-pa-none" name="options">
@@ -256,9 +260,9 @@
 </style>
 
 <script setup lang="ts">
-import {computed, ref, useTemplateRef} from 'vue'
+import {computed, onMounted, ref, useTemplateRef} from 'vue'
 import {copyToClipboard, useQuasar} from 'quasar'
-import {useTitle} from '@vueuse/core'
+import {useEventListener, useTitle} from '@vueuse/core'
 import {toUnicode} from 'punycode'
 import {
 	AppService,
@@ -273,13 +277,15 @@ import {
 	ReqKvTable,
 	ReqBodyForm,
 	ReqOptionsForm,
+	ReqService,
+	ReqUrlDialog,
 	useReqStore,
 	useUiStore,
 } from '@'
 
 const
 	$q = useQuasar(),
-	{req$} = useReqStore(),
+	{req$, touched$} = useReqStore(),
 	{ripple$} = useUiStore(),
 
 	urlInput$ = useTemplateRef<typeof ReqUrlField>('url-input'),
@@ -296,14 +302,24 @@ const
 	}` : '')),
 
 	disableExtract$ = computed(() =>
-		!req$.value.params.rows.some(({disable, key, value}) => !disable && key === 'url' && value)
+		!req$.value.urlValid || !req$.value.params.rows
+			.some(({disable, key, value}) => !disable && key === 'url' && value)
 	),
+
+	listenerPreventUnload = useEventListener(window, 'beforeunload', event => {
+		if (touched$.value) {
+			event.preventDefault()
+			event.returnValue = true
+		}
+	}),
 
 	SIDENAV_BP = 1_800
 
-// TODO: implement functions
+onMounted(() => setTimeout(() => touched$.value = false))
 
-function fullscreenUrl() {}
+function expandUrlEditor() {
+	$q.dialog({component: ReqUrlDialog})
+}
 
 async function copyUrl() {
 	try {
@@ -331,8 +347,8 @@ function pasteCurl(event: ClipboardEvent) {
 	try {
 		const text = event.clipboardData?.getData('text')
 		if (text?.trim().match(/^curl(\s|\\)/)) {
-			event.preventDefault()
 			req$.value = CurlService.fromCurl(text)
+			event.preventDefault()
 		}
 	}
 	catch (error) {
@@ -341,7 +357,9 @@ function pasteCurl(event: ClipboardEvent) {
 	}
 }
 
-function openCookies() {}
+function openCookies() {
+	// https://developer.mozilla.org/en-US/docs/Web/API/Document/cookie#notes
+}
 function openEncodeAndDecode() {}
 
 function randomString(bytes: number) {
@@ -353,9 +371,10 @@ function randomString(bytes: number) {
 	return result.slice(0, bytes)
 }
 function openExamples() {
-	Object.assign(req$.value, new Req())
-	req$.value.url = 'https://chatgpt.com/?temporary-chat=true'
-	req$.value.headers.rows = Array(500).fill(null).map(() => ({
+	const req = req$.value
+	Object.assign(req, new Req().patchView(req), {id: req.id})
+	req.url = 'https://chatgpt.com/?temporary-chat=true'
+	req.headers.rows = Array(500).fill(null).map(() => ({
 		disable: Math.random() > 0.5,
 		key: randomString(80),
 		value: randomString(80),
@@ -364,6 +383,7 @@ function openExamples() {
 
 function openAbout() {}
 
+/** TODO: header from body (application/x-www-form-urlencoded, JS, JSON, XML), cache: no-store */
 function send(command?: 'download' | 'repeat') {
 	const
 		req = req$.value,
@@ -379,20 +399,21 @@ function send(command?: 'download' | 'repeat') {
 		req$.value.fetching = true
 }
 
-function extractCurlProxy() {}
+function extractCurlProxy() {
+	try {
+		ReqService.extractCurlProxy(req$.value)
+	}
+	catch (error) {
+		console.error(error)
+		$q.notify('Error parsing cURL Proxy URL')
+	}
+}
 
 /* TODO:
 
 * JS/JSON/XML editor: https://codemirror.net/, minify/beautify
-
 * min 320x320
-* conditionally confirm page reload
-* fullscreenable: https://vueuse.org/core/useFullscreen/
 * [accesskey] & keyboard shortcuts (https://vueuse.org/core/useMagicKeys/) menu item, keyboard flow (next on enter)
-
-* cookies: https://developer.mozilla.org/en-US/docs/Web/API/Document/cookie#notes
-* header from body (application/x-www-form-urlencoded, JS, JSON, XML)
-* cache: no-store
 
 https://vueuse.org/core/useWebWorkerFn/
 https://vueuse.org/core/useNetwork/

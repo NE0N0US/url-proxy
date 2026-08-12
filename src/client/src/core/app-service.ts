@@ -4,8 +4,37 @@ export class AppService {
 		if (object === null || typeof object !== 'object')
 			return object
 		for (const key of Reflect.ownKeys(object))
-			this.freeze(object[key as keyof object])
+			AppService.freeze(object[key as keyof object])
 		return Object.freeze(object)
+	}
+
+	static importFiles({multiple, accept, binary}: {multiple?: boolean, accept?: string, binary?: boolean} = {}) {
+		return new Promise<null | string[] | ArrayBuffer[]>((resolve, reject) => {
+			const input = document.createElement('input')
+			input.type = 'file'
+			if (multiple !== undefined)
+				input.multiple = multiple
+			if (accept !== undefined)
+				input.accept = accept
+			input.onchange = async () => {
+				try {
+					const files = input.files
+						? Array(input.files.length).fill(null).map((_, index) => input.files![index]!)
+						: []
+					if (!files.length)
+						resolve(null)
+					else
+						resolve(binary
+							? await Promise.all(files.map(file => file.arrayBuffer()))
+							: await Promise.all(files.map(file => file.text()))
+						)
+				}
+				catch (error) {
+					reject(error)
+				}
+			}
+			input.click()
+		})
 	}
 
 	/** relative or protocol-less */

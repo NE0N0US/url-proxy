@@ -116,8 +116,21 @@
 	max-height: 100dvh;
 }
 
+.max-width-sm {
+	max-width: 1024px !important;
+	margin-inline: auto;
+	position: relative;
+
+	&.max-width-separators {
+		@media screen and (width >= 1026px) {
+			border: 1px var(--color-border);
+			border-style: none solid;
+		}
+	}
+}
+
 .max-width-md {
-	max-width: 1440px;
+	max-width: 1440px !important;
 	margin-inline: auto;
 	position: relative;
 

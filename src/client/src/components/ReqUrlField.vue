@@ -1,20 +1,22 @@
 <template>
 <div class="artisan-req-url-field">
 	<q-input
-		class="fit" :class="{'cursor-not-allowed': fetching || disable}"
+		class="fit"
+		:class="{'cursor-not-allowed': fetching || disable, 'shadow-text-always': expanded}"
 		spellcheck="false" autocomplete="off"
 		inputmode="url" enterkeyhint="send"
 		:inert="fetching || disable"
 		ref="input"
-		label="URL"
+		:label="expanded ? undefined : 'URL'"
 		:shadow-text="url$ ? ' ' : 'Full, protocol-less, or relative URL'"
+		:autogrow="expanded"
 		v-model="url$"
 		:disable="fetching || disable"
 		borderless hide-bottom-space dense
 		input-class="artisan-mono"
 		@keydown.enter.passive="allowSend$ ? $emit('start') : null"
 	>
-		<template #after>
+		<template v-if="!expanded" #after>
 			<q-btn
 				:icon="fetching ? 'mdi-stop' : 'mdi-send'"
 				:disable="!fetching && !allowSend$ || disable"
@@ -41,6 +43,7 @@ const
 		valid?: boolean | undefined,
 		fetching?: boolean | undefined,
 		disable?: boolean | undefined,
+		expanded?: boolean | undefined,
 	}>(),
 
 	$emit = defineEmits<{
@@ -52,7 +55,7 @@ const
 	url$ = defineModel<string>({required: true}),
 
 	allowSend$ = computed(
-		() => !!(url$.value && $props.valid && !$props.fetching && !$props.disable)
+		() => !!(url$.value && $props.valid && !$props.fetching && !$props.disable && !$props.expanded)
 	),
 
 	listenerPaste = useEventListener(() => input$.value?.nativeEl, 'paste', event => $emit('paste', event))

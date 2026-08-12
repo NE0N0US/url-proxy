@@ -1,6 +1,6 @@
 <template>
 	<menu-item
-		class="q-pa-toolbar"
+		class="artisan-req-options-form-toggle q-pa-toolbar"
 		:icon="icon"
 		:label="label"
 		:caption="caption"
