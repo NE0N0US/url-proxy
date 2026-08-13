@@ -22,7 +22,14 @@
 				:disable="!fetching && !allowSend$ || disable"
 				flat round color="text":ripple="ripple$"
 				@click.passive="fetching ? $emit('stop') : $emit('start')"
-			/>
+			>
+				<q-tooltip
+					v-if="!(!fetching && !allowSend$ || disable)"
+					:delay="300" transition-duration="0"
+				>
+					{{fetching ? 'Stop' : 'Send'}}
+				</q-tooltip>
+			</q-btn>
 		</template>
 	</q-input>
 </div>

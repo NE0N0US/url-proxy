@@ -243,23 +243,23 @@ export class Req {
 	options = new ReqOptions()
 	fetching = false
 
-	/** preserve `rowsPerPage`s and `tab`s */
+	/** preserve tabs and paginations */
 	patchView(req: Req) {
 		this.tab = req.tab
-		this.params.pagination.rowsPerPage = req.params.pagination.rowsPerPage
-		this.headers.pagination.rowsPerPage = req.headers.pagination.rowsPerPage
-		this.body.formPagination.rowsPerPage = req.body.formPagination.rowsPerPage
+		this.params.pagination = req.params.pagination
+		this.headers.pagination = req.headers.pagination
+		this.body.formPagination = req.body.formPagination
 		this.options.curlProxy.tab = req.options.curlProxy.tab
-		this.options.curlProxy.headersAll.headers!.pagination.rowsPerPage =
-			req.options.curlProxy.headersAll.headers!.pagination.rowsPerPage
-		this.options.curlProxy.headersAll.delHeaders!.pagination.rowsPerPage =
-			req.options.curlProxy.headersAll.delHeaders!.pagination.rowsPerPage
-		this.options.curlProxy.headersAll.resHeaders!.pagination.rowsPerPage =
-			req.options.curlProxy.headersAll.resHeaders!.pagination.rowsPerPage
-		this.options.curlProxy.headersAll.delResHeaders!.pagination.rowsPerPage =
-			req.options.curlProxy.headersAll.delResHeaders!.pagination.rowsPerPage
-		this.options.curlProxy.body.formPagination.rowsPerPage =
-			req.options.curlProxy.body.formPagination.rowsPerPage
+		this.options.curlProxy.headersAll.headers!.pagination =
+			req.options.curlProxy.headersAll.headers!.pagination
+		this.options.curlProxy.headersAll.delHeaders!.pagination =
+			req.options.curlProxy.headersAll.delHeaders!.pagination
+		this.options.curlProxy.headersAll.resHeaders!.pagination =
+			req.options.curlProxy.headersAll.resHeaders!.pagination
+		this.options.curlProxy.headersAll.delResHeaders!.pagination =
+			req.options.curlProxy.headersAll.delResHeaders!.pagination
+		this.options.curlProxy.body.formPagination =
+			req.options.curlProxy.body.formPagination
 		return this
 	}
 }

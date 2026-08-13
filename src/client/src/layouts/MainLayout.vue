@@ -98,13 +98,20 @@
 								>
 									<app-color-settings/>
 								</q-menu>
+								<q-tooltip :delay="300" transition-duration="0">
+									Theme
+								</q-tooltip>
 							</q-btn>
 							<q-btn
 								v-if="$q.screen.width < SIDENAV_BP"
 								icon="mdi-tab"
 								flat round :ripple="ripple$"
 								@click.passive="drawer$ = true"
-							/>
+							>
+								<q-tooltip :delay="300" transition-duration="0">
+									Tabs
+								</q-tooltip>
+							</q-btn>
 						</div>
 					</q-toolbar>
 				</template>
@@ -113,6 +120,7 @@
 						<div class="url-field-pair row no-wrap" :class="{'cursor-not-allowed': req$.fetching}">
 							<http-method-field
 								class="no-shrink"
+								ref="method-input"
 								:disable="req$.fetching || req$.params.textMode"
 								:offset-x="4"
 								v-model="req$.method"
@@ -262,7 +270,7 @@
 <script setup lang="ts">
 import {computed, onMounted, ref, useTemplateRef} from 'vue'
 import {copyToClipboard, useQuasar} from 'quasar'
-import {useEventListener, useTitle} from '@vueuse/core'
+import {useEventListener, useMagicKeys, useTitle, whenever} from '@vueuse/core'
 import {toUnicode} from 'punycode'
 import {
 	AppService,
@@ -288,8 +296,17 @@ const
 	{req$, touched$} = useReqStore(),
 	{ripple$} = useUiStore(),
 
+	methodInput$ = useTemplateRef<typeof HttpMethodField>('method-input'),
 	urlInput$ = useTemplateRef<typeof ReqUrlField>('url-input'),
 	reqTabHeight$ = ref(0),
+
+	keys$ = useMagicKeys(),
+	watcherAltM = whenever(keys$.alt_m!, () => methodInput$.value!.focus()),
+	watcherAltU = whenever(keys$.alt_u!, () => urlInput$.value!.focus()),
+	watcherAltP = whenever(keys$.alt_p!, () => req$.value.tab = 'params'),
+	watcherAltH = whenever(keys$.alt_h!, () => req$.value.tab = 'headers'),
+	watcherAltB = whenever(keys$.alt_b!, () => req$.value.tab = 'body'),
+	watcherAltO = whenever(keys$.alt_o!, () => req$.value.tab = 'options'),
 
 	drawer$ = ref(false),
 	collapse$ = ref<null | 'start' | 'end'>('end'),
@@ -410,17 +427,15 @@ function extractCurlProxy() {
 }
 
 /* TODO:
-
-* JS/JSON/XML editor: https://codemirror.net/, minify/beautify
-* min 320x320
-* [accesskey] & keyboard shortcuts (https://vueuse.org/core/useMagicKeys/) menu item, keyboard flow (next on enter)
+JS/JSON/XML editor: https://codemirror.net/, minify/beautify
+response
+dialogs: cookies, encode/decode, examples, about
 
 https://vueuse.org/core/useWebWorkerFn/
 https://vueuse.org/core/useNetwork/
 https://vueuse.org/core/useFetch/
 https://vueuse.org/core/useTimestamp/
 https://vueuse.org/shared/useTimeout/
-
 */
 
 </script>

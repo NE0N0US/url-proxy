@@ -39,17 +39,24 @@
 				:disable="!value$ || Array.isArray(value$) && !value$.length"
 				flat round color="text" :ripple="ripple$"
 				@click.passive="value$ = Array.isArray(value$) ? [] : null"
-			/>
+			>
+				<q-tooltip
+					v-if="!(!value$ || Array.isArray(value$) && !value$.length)"
+					:delay="300" transition-duration="0"
+				>
+					Remove File
+				</q-tooltip>
+			</q-btn>
 			<slot v-else name="after"/>
 		</template>
 		<q-tooltip
 			v-if="Array.isArray(value$) && value$.length > 1"
 			:ref="tooltip => tooltipElement$ = <HTMLElement>(<QTooltip>tooltip)?.contentEl"
-			:delay="300" :hide-delay="500"
+			:delay="300"
 			:model-value="tooltip$ || !outsideTooltip$"
 			@update:model-value="tooltip$ = $event"
 			anchor="bottom left" self="top left" :offset="[13, 0]"
-			transition-show="fade" transition-hide="fade"
+			transition-show="none" transition-hide="none"
 		>
 			<div class="tooltip column no-wrap gap-sm" translate="no">
 				<span v-for="name of names$" :key="name">

@@ -111,6 +111,12 @@ export const useReqStore = createSharedComposable(() => {
 				reqs.splice(reqs.indexOf(req$.value) + 1, 0, req)
 				store.open(req)
 			},
+
+			closeAll(keepOpen?: boolean) {
+				reqs$.value.splice(0, Infinity, ...keepOpen ? [req$.value] : [])
+				if (!keepOpen)
+					store.open()
+			},
 		}
 
 	return store

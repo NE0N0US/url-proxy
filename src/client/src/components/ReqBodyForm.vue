@@ -63,7 +63,11 @@
 			@click.passive="type$ = resetValue(
 				type$ === ReqBodyType.FORM_URLENCODED ? ReqBodyType.FORM_MULTIPART : ReqBodyType.FORM_URLENCODED,
 			type$)"
-		/>
+		>
+			<q-tooltip :delay="300" transition-duration="0">
+				{{type$ === ReqBodyType.FORM_URLENCODED ? 'Add Files' : 'Remove Files'}}
+			</q-tooltip>
+		</q-btn>
 	</req-kv-table>
 </div>
 </template>

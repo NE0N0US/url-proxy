@@ -14,10 +14,13 @@
 	<template #after>
 		<q-btn
 			:icon="readonly ? 'mdi-arrow-left' : 'mdi-content-save-outline'"
-			:disable="false"
 			flat round color="text" :ripple="ripple$"
 			@click.passive="saveText()"
-		/>
+		>
+			<q-tooltip v-if="!readonly" :delay="300" transition-duration="0">
+				Save
+			</q-tooltip>
+		</q-btn>
 	</template>
 </q-input>
 <div v-else class="artisan-req-kv-table">
@@ -54,7 +57,14 @@
 						:disable="!!pagination$.filter?.query"
 						flat round color="text" :ripple="ripple$"
 						@click.passive="textMode$ = true"
-					/>
+					>
+						<q-tooltip
+							v-if="!pagination$.filter?.query"
+							:delay="300" transition-duration="0"
+						>
+							Text View
+						</q-tooltip>
+					</q-btn>
 				</div>
 			</q-th>
 		</template>
@@ -95,16 +105,30 @@
 					<q-btn
 						v-if="multipartForm"
 						:icon="Array.isArray(props.row.value) ? 'mdi-paperclip-remove' : 'mdi-paperclip'"
-						:disable="readonly"
+						:disable="readonly || props.row === ghostRow && !!pagination$.filter?.query"
 						flat round color="text" :ripple="ripple$"
 						@click.passive="switchValueInput(props.rowIndex)"
-					/>
+					>
+						<q-tooltip
+							v-if="!(readonly || props.row === ghostRow && !!pagination$.filter?.query)"
+							:delay="300" transition-duration="0"
+						>
+							{{Array.isArray(props.row.value) ? 'Remove Files' : 'Add Files'}}
+						</q-tooltip>
+					</q-btn>
 					<q-btn
 						:icon="props.row !== ghostRow ? 'mdi-trash-can-outline' : 'mdi-plus'"
 						:disable="readonly || props.row === ghostRow && !!pagination$.filter?.query"
 						flat round color="text" :ripple="ripple$"
 						@click.passive="props.row !== ghostRow ? rows$.splice(props.rowIndex, 1) : addRow()"
-					/>
+					>
+						<q-tooltip
+							v-if="!(readonly || props.row === ghostRow && !!pagination$.filter?.query)"
+							:delay="300" transition-duration="0"
+						>
+							{{props.row !== ghostRow ? 'Remove' : 'Add'}}
+						</q-tooltip>
+					</q-btn>
 				</div>
 			</q-td>
 		</template>
@@ -128,7 +152,11 @@
 							:icon="filterRaw$?.regex ? 'mdi-regex' : 'mdi-magnify'"
 							flat round color="text" :ripple="ripple$"
 							@click.passive="setFilter({regex: !filterRaw$?.regex})"
-						/>
+						>
+							<q-tooltip :delay="300" transition-duration="0">
+								{{filterRaw$?.regex ? 'Use Fuzzy Search' : 'Use Regex Search'}}
+							</q-tooltip>
+						</q-btn>
 						<q-icon v-else class="q-px-sm" name="mdi-alert-outline" color="text"/>
 					</template>
 				</q-input>

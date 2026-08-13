@@ -26,12 +26,20 @@
 								<q-btn
 									icon="mdi-plus" flat round :ripple="ripple$"
 									@click.passive="open()"
-								/>
+								>
+									<q-tooltip :delay="300" transition-duration="0">
+										New Request
+									</q-tooltip>
+								</q-btn>
 								<q-btn
 									icon="mdi-trash-can-outline"
 									flat round :ripple="ripple$"
 									@click.passive="close()"
-								/>
+								>
+									<q-tooltip :delay="300" transition-duration="0">
+										Close Request
+									</q-tooltip>
+								</q-btn>
 								<q-btn icon="mdi-dots-vertical" flat round :ripple="ripple$">
 									<q-menu
 										auto-close
@@ -46,14 +54,26 @@
 											/>
 											<q-separator spaced/>
 											<menu-item
+												icon="mdi-close-box-multiple-outline"
+												label="Close All Requests"
+												@click.passive="closeAll()"
+											/>
+											<menu-item
+												icon="mdi-close-box-outline"
+												label="Close Other Requests"
+												:disable="reqs$.length <= 1"
+												@click.passive="closeAll(true)"
+											/>
+											<q-separator spaced/>
+											<menu-item
 												icon="mdi-database-import-outline"
-												label="Import…"
-												@click.passive="importReqs()"
+												label="Import Workspaces…"
+												@click.passive="importWorkspaces()"
 											/>
 											<menu-item
 												icon="mdi-database-export-outline"
-												label="Export All…"
-												@click.passive="exportReqs()"
+												label="Export Workspace…"
+												@click.passive="exportWorkspace()"
 											/>
 										</q-list>
 									</q-menu>
@@ -86,7 +106,7 @@ import {AppService, MenuItem, Req, ReqService, useReqStore, useUiStore} from '@'
 
 const
 	$q = useQuasar(),
-	{req$, reqs$, open, close, duplicate} = useReqStore(),
+	{req$, reqs$, open, close, duplicate, closeAll} = useReqStore(),
 
 	{ripple$} = useUiStore(),
 
@@ -104,7 +124,7 @@ function label(req: Req) {
 	return (req.method === 'GET' ? '' : `${req.method} `) + req.url
 }
 
-async function importReqs() {
+async function importWorkspaces() {
 	const jsons = await AppService.importFiles({
 		multiple: true,
 		accept: 'application/json',
@@ -127,10 +147,10 @@ async function importReqs() {
 		}
 }
 
-async function exportReqs() {
+async function exportWorkspace() {
 	try {
 		exportFile(
-			`artisan-tabs-${formatDate(Date.now(), 'YYYY-MM-DDTHH-mm-ss')}.json`,
+			`artisan-workspace-${formatDate(Date.now(), 'YYYY-MM-DDTHH-mm-ss')}.json`,
 			JSON.stringify(await Promise.all(
 				reqs$.value.map(ReqService.serialize)
 			), undefined, '\t'),
