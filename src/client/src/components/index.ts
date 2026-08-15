@@ -2,6 +2,7 @@ export * from './dialogs'
 
 export {default as AppColorSettings} from './AppColorSettings.vue'
 export {default as AppColorSettingsPresets} from './AppColorSettingsPresets.vue'
+export {default as CodeEditor} from './CodeEditor.vue'
 export {default as FileInputField} from './FileInputField.vue'
 export {default as HttpMethodField} from './HttpMethodField.vue'
 export {default as MenuItem} from './MenuItem.vue'

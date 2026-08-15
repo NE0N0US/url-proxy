@@ -226,7 +226,7 @@
 </style>
 
 <script setup lang="ts">
-import {computed, nextTick, ref, watch} from 'vue'
+import {computed, nextTick, ref, shallowRef, watch} from 'vue'
 import {debounce, type QResizeObserver, type QTable} from 'quasar'
 import {syncRef, useFocusWithin} from '@vueuse/core'
 import fuzzysort from 'fuzzysort'
@@ -235,13 +235,13 @@ import {FileInputField, useUiStore, type ReqKV} from '@'
 const
 	{ripple$} = useUiStore(),
 
-	table$ = ref<QTable>(),
+	table$ = shallowRef<QTable>(),
 
 	{focused: tableFocused$} = useFocusWithin(computed(() => table$.value?.$el)),
 
-	inputs$ = ref<Record<string, any>>({}),
+	inputs: Record<string, any> = {},
 
-	resize$ = ref<QResizeObserver>(),
+	resize$ = shallowRef<QResizeObserver>(),
 
 	$props = defineProps<{
 		readonly?: boolean | undefined,
@@ -384,12 +384,12 @@ function keyNav(event: KeyboardEvent) {
 }
 
 function storeInput(column: string, row: number, input: any) {
-	inputs$.value[`input-${column}-${row}`] = input
+	inputs[`input-${column}-${row}`] = input
 }
 
 async function focusInput(column: string, row: number) {
 	await nextTick()
-	const input = inputs$.value[`input-${column}-${row}`]
+	const input = inputs[`input-${column}-${row}`]
 	input?.focus()
 	input?.select?.()
 }

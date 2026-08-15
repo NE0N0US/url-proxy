@@ -1,16 +1,29 @@
-// non-class
+// non-class & non-quasar overrides
 .artisan {
+	// default light theme
 	--light-background: #e0dbc7;
 	--light-text: #171717;
 	--light-accent: #0000e4;
+	--light-code-syntax: #bd00be;
+	--light-code-entity: #d60061;
+	--light-code-value: #b45800;
+	// default dark theme
 	--dark-background: #1a1d2b;
 	--dark-text: #dcdcdc;
 	--dark-accent: #dea81e;
+	--dark-code-syntax: #fc94f9;
+	--dark-code-entity: #fd88a3;
+	--dark-code-value: #fcaa75;
+	// light theme
 	--color-background: var(--light-background);
 	--color-text: var(--light-text);
 	// NOTE: https://caniuse.com/css-relative-colors
+	--color-disabled: rgb(from var(--color-text) r g b / var(--opacity-disabled));
 	--color-border: rgb(from var(--color-text) r g b / var(--opacity-border));
 	--q-primary: var(--light-accent);
+	--color-code-syntax: var(--light-code-syntax);
+	--color-code-entity: var(--light-code-entity);
+	--color-code-value: var(--light-code-value);
 	--opacity-disabled: 0.5;
 	--opacity-border: 0.125;
 	color-scheme: light;
@@ -24,6 +37,9 @@
 		--color-background: var(--dark-background);
 		--color-text: var(--dark-text);
 		--q-primary: var(--dark-accent);
+		--color-code-syntax: var(--dark-code-syntax);
+		--color-code-entity: var(--dark-code-entity);
+		--color-code-value: var(--dark-code-value);
 		color-scheme: dark;
 	}
 
@@ -32,6 +48,9 @@
 			--color-background: var(--dark-background);
 			--color-text: var(--dark-text);
 			--q-primary: var(--dark-accent);
+			--color-code-syntax: var(--dark-code-syntax);
+			--color-code-entity: var(--dark-code-entity);
+			--color-code-value: var(--dark-code-value);
 			color-scheme: dark;
 		}
 	}
@@ -48,6 +67,61 @@
 	input {
 		// NOTE: https://stackoverflow.com/q/66905019
 		text-overflow: ellipsis;
+	}
+
+	.v-codemirror {
+		.cm-focused {
+			outline: none;
+		}
+
+		.cm-gutters {
+			border: none;
+			background-color: var(--color-background);
+			color: var(--color-text);
+			opacity: var(--opacity-disabled);
+			user-select: none;
+
+			.q-icon {
+				display: block;
+				line-height: inherit;
+				color: var(--color-text);
+				cursor: pointer;
+
+				&::before {
+					display: block !important;
+				}
+			}
+		}
+
+		.cm-foldPlaceholder {
+			margin: 0;
+			padding: 0;
+			border-radius: 0;
+			border: none;
+			background: none;
+			color: var(--color-disabled);
+			pointer-events: none;
+		}
+
+		.cm-activeLineGutter,
+		.cm-activeLineGutter *,
+		.cm-matchingBracket,
+		.cm-matchingBracket *,
+		.cm-nonmatchingBracket,
+		.cm-nonmatchingBracket *,
+		.cm-selectionMatch,
+		.cm-selectionMatch * {
+			background-color: var(--color-text) !important;
+			color: var(--color-background) !important;
+		}
+
+		.cm-content {
+			caret-color: var(--q-primary);
+		}
+
+		.cm-scroller {
+			font-family: 'Roboto Mono', monospace;
+		}
 	}
 }
 

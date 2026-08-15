@@ -253,11 +253,14 @@
 			<div class="overflow-hidden">
 				<div
 					class="row no-wrap"
-					:style="{width: (Object.keys(options$.curlProxy.headersAll).length + 2) * 100 + '%'}"
+					:style="{
+						width: (Object.keys(options$.curlProxy.headersAll).length + 2) * 100 + '%',
+						'max-height': (tableHeight - 49) + 'px',
+					}"
 				>
 					<req-kv-table
 						v-for="table, _key, index of options$.curlProxy.headersAll" :key="table.name"
-						class="full-width relative-position"
+						class="full-width relative-position overflow-auto"
 						:class="{invisible: options$.curlProxy.tab !== table.name}"
 						:style="{
 							'max-width': 100 / (Object.keys(options$.curlProxy.headersAll).length + 2) + '%',
@@ -265,14 +268,14 @@
 						}"
 						:inert="options$.curlProxy.tab !== table.name"
 						:hide-columns="table.deleteMode ? 'value' : undefined"
-						:table-height="tableHeight - 48"
+						:table-height="tableHeight - 49"
 						v-model:text-mode="table.textMode"
 						v-model:text-value="table.textValue"
 						v-model="table.rows"
 						v-model:pagination="table.pagination"
 					/>
 					<req-body-form
-						class="full-width relative-position"
+						class="full-width relative-position overflow-auto"
 						:class="{invisible: options$.curlProxy.tab !== 'body'}"
 						:style="{
 							'max-width': 100 / (Object.keys(options$.curlProxy.headersAll).length + 2) + '%',
@@ -280,16 +283,17 @@
 								/ (Object.keys(options$.curlProxy.headersAll).length + 2) + '%',
 						}"
 						:inert="options$.curlProxy.tab !== 'body'"
-						:form-table-height="tableHeight - 97"
+						:form-table-height="tableHeight - 98"
 						v-model:type="options$.curlProxy.body.type"
 						v-model:form-text-mode="options$.curlProxy.body.formTextMode"
 						v-model:form-text-value="options$.curlProxy.body.formTextValue"
-						v-model:file-accept="options$.curlProxy.body.fileAccept"
-						v-model="options$.curlProxy.body.value"
 						v-model:form-pagination="options$.curlProxy.body.formPagination"
+						v-model:file-accept="options$.curlProxy.body.fileAccept"
+						v-model:text-lang="options$.curlProxy.body.textLang"
+						v-model="options$.curlProxy.body.value"
 					/>
 					<res-body-form
-						class="full-width relative-position"
+						class="full-width relative-position overflow-auto"
 						:class="{invisible: options$.curlProxy.tab !== 'resBody'}"
 						:style="{
 							'max-width': 100 / (Object.keys(options$.curlProxy.headersAll).length + 2) + '%',

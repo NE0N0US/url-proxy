@@ -215,9 +215,10 @@
 												v-model:type="req$.body.type"
 												v-model:form-text-mode="req$.body.formTextMode"
 												v-model:form-text-value="req$.body.formTextValue"
-												v-model:file-accept="req$.body.fileAccept"
-												v-model="req$.body.value"
 												v-model:form-pagination="req$.body.formPagination"
+												v-model:file-accept="req$.body.fileAccept"
+												v-model:text-lang="req$.body.textLang"
+												v-model="req$.body.value"
 											/>
 										</q-tab-panel>
 										<q-tab-panel class="overflow-hidden q-pa-none" name="options">
@@ -427,9 +428,10 @@ function extractCurlProxy() {
 }
 
 /* TODO:
-JS/JSON/XML editor: https://codemirror.net/, minify/beautify
+code editor: minify/beautify
 response
 dialogs: cookies, encode/decode, examples, about
+keyboard controls: alt-*, table pagination, code editor keymaps
 
 https://vueuse.org/core/useWebWorkerFn/
 https://vueuse.org/core/useNetwork/

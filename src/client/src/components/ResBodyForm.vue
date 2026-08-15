@@ -9,24 +9,19 @@
 			color="text"
 		/>
 	</div>
-	<template v-if="option$ === ResBodyType.JAVASCRIPT">
-		<q-separator/>
-		<q-input
-			class="grow q-px-md q-py-xs shadow-text-always"
-			spellcheck="false" autocomplete="off"
-			:shadow-text="javascript$ ? ' ' : 'Input JavaScript function body'"
-			autogrow
-			v-model="<string>javascript$"
-			borderless hide-bottom-space dense
-			input-class="artisan-mono"
-		/>
-	</template>
+	<code-editor
+		v-if="option$ === ResBodyType.JAVASCRIPT"
+		no-lang-options
+		placeholder="Enter JavaScript function body"
+		lang="javascript"
+		v-model="<string>javascript$"
+	/>
 </div>
 </template>
 
 <script setup lang="ts">
 import {computed} from 'vue'
-import {ResBodyType} from '@'
+import {CodeEditor, ResBodyType} from '@'
 
 const
 	value$ = defineModel<string>({required: true}),

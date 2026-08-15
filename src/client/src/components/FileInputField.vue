@@ -93,7 +93,7 @@
 </style>
 
 <script setup lang="ts">
-import {computed, ref, useAttrs, useTemplateRef} from 'vue'
+import {computed, ref, shallowRef, useAttrs, useTemplateRef} from 'vue'
 import {format, type QFile, type QTooltip} from 'quasar'
 const {humanStorageSize} = format
 import {useMouseInElement} from '@vueuse/core'
@@ -133,7 +133,7 @@ const
 			: value?.size ?? 0
 	}),
 
-	tooltipElement$ = ref<HTMLElement>(),
+	tooltipElement$ = shallowRef<HTMLElement>(),
 	{isOutside: outsideTooltip$} = useMouseInElement(tooltipElement$),
 
 	tooltip$ = ref(false)

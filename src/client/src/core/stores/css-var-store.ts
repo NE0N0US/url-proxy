@@ -51,10 +51,18 @@ export const useCssVarStore = createSharedComposable(() => {
 })
 
 export enum CssVarStoreKey {
+	// light
 	LIGHT_BACKGROUND = '--light-background',
 	LIGHT_TEXT = '--light-text',
 	LIGHT_ACCENT = '--light-accent',
+	LIGHT_CODE_SYNTAX = '--light-code-syntax',
+	LIGHT_CODE_ENTITY = '--light-code-entity',
+	LIGHT_CODE_VALUE = '--light-code-value',
+	// dark
 	DARK_BACKGROUND = '--dark-background',
 	DARK_TEXT = '--dark-text',
 	DARK_ACCENT = '--dark-accent',
+	DARK_CODE_SYNTAX = '--dark-code-syntax',
+	DARK_CODE_ENTITY = '--dark-code-entity',
+	DARK_CODE_VALUE = '--dark-code-value',
 }

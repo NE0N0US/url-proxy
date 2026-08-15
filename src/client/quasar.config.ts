@@ -11,6 +11,9 @@ export default defineConfig(ctx => {
 		extras: [
 			'mdi-v7',
 		],
+		boot: [
+			'codemirror',
+		],
 		framework: {
 			iconSet: 'mdi-v7',
 			plugins: ['Dialog', 'Notify'],

@@ -29,81 +29,83 @@
 	<template v-if="colorScheme$ === 'light' || colorScheme$ === 'dark'">
 		<app-color-settings-presets :scheme="colorScheme$" v-model="preset$"/>
 		<q-separator/>
-		<q-input
-			v-for="{icon, color, model} of colors$" :key="color"
-			spellcheck="false" autocomplete="off"
-			:label="color + ' Color'"
-			:shadow-text="model.value ? ' ' : 'CSS <color> value'"
-			v-model="model.value" debounce="300"
-			borderless hide-bottom-space dense
-			input-class="artisan-mono"
-		>
-			<template #prepend>
-				<q-icon :name="icon" color="text"/>
-			</template>
-			<template #after>
-				<q-btn
-					icon="mdi-eyedropper"
-					flat round color="text" :ripple="ripple$"
-				>
-					<q-menu
-						separate-close-popup
-						max-width="calc(100dvw - 40px)" max-height="calc(100dvh - 24px)"
-						transition-show="none" transition-hide="none"
+		<template v-for="{icon, color, model, separatorAfter} of colors$" :key="color">
+			<q-input
+				spellcheck="false" autocomplete="off"
+				:label="color + ' Color'"
+				:shadow-text="model.value ? ' ' : 'CSS <color> value'"
+				v-model="model.value" debounce="300"
+				borderless hide-bottom-space dense
+				input-class="artisan-mono"
+			>
+				<template #prepend>
+					<q-icon :name="icon" color="text"/>
+				</template>
+				<template #after>
+					<q-btn
+						icon="mdi-eyedropper"
+						flat round color="text" :ripple="ripple$"
 					>
-						<div
-							class="column no-wrap non-selectable"
-							:style="{'--model': model.value}"
+						<q-menu
+							separate-close-popup
+							max-width="calc(100dvw - 40px)" max-height="calc(100dvh - 24px)"
+							transition-show="none" transition-hide="none"
 						>
-							<div class="sticky-header">
-								<div class="color-picker-header">
-									<q-input
-										:style="headerColors(model.value!)"
-										spellcheck="false" autocomplete="off"
-										:label="color + ' Color'"
-										:shadow-text="model.value ? ' ' : 'CSS <color> value'"
-										v-model="model.value"
-										borderless hide-bottom-space square dense
-										input-class="artisan-mono"
-									>
-											<q-btn
-												v-close-popup
-												icon="mdi-check"
-												flat round color="text" :ripple="ripple$"
-											/>
-									</q-input>
+							<div
+								class="column no-wrap non-selectable"
+								:style="{'--model': model.value}"
+							>
+								<div class="sticky-header">
+									<div class="color-picker-header">
+										<q-input
+											:style="headerColors(model.value!)"
+											spellcheck="false" autocomplete="off"
+											:label="color + ' Color'"
+											:shadow-text="model.value ? ' ' : 'CSS <color> value'"
+											v-model="model.value"
+											borderless hide-bottom-space square dense
+											input-class="artisan-mono"
+										>
+												<q-btn
+													v-close-popup
+													icon="mdi-check"
+													flat round color="text" :ripple="ripple$"
+												/>
+										</q-input>
+									</div>
+									<q-separator/>
 								</div>
-								<q-separator/>
-							</div>
-							<q-color
-								class="bg-background"
-								translate="no"
-								default-view="tune" no-header no-footer
-								v-model="model.value"
-								square flat
-							/>
-							<div class="overflow-hidden q-pa-md">
 								<q-color
 									class="bg-background"
+									translate="no"
+									default-view="tune" no-header no-footer
+									v-model="model.value"
+									square flat
+								/>
+								<div class="overflow-hidden q-pa-md">
+									<q-color
+										class="bg-background"
+										no-header no-footer
+										v-model="model.value"
+										square flat
+									/>
+								</div>
+								<q-separator/>
+								<q-color
+									class="bg-background"
+									default-view="palette"
+									:palette="PALETTE"
 									no-header no-footer
 									v-model="model.value"
 									square flat
 								/>
 							</div>
-							<q-separator/>
-							<q-color
-								class="bg-background"
-								default-view="palette"
-								:palette="PALETTE"
-								no-header no-footer
-								v-model="model.value"
-								square flat
-							/>
-						</div>
-					</q-menu>
-				</q-btn>
-			</template>
-		</q-input>
+						</q-menu>
+					</q-btn>
+				</template>
+			</q-input>
+			<q-separator v-if="separatorAfter"/>
+		</template>
 	</template>
 	<div v-else class="auto-theme-hint">
 		Select a light or dark theme to preview and edit it. Auto switches between them automatically.
@@ -215,15 +217,71 @@ const
 	cssVarStore = useCssVarStore(),
 
 	colorsLight = [
-		{icon: 'mdi-format-color-fill', color: 'Background', model: cssVarStore.get(CssVarStoreKey.LIGHT_BACKGROUND)},
-		{icon: 'mdi-format-color-text', color: 'Text', model: cssVarStore.get(CssVarStoreKey.LIGHT_TEXT)},
-		{icon: 'mdi-format-color-highlight', color: 'Accent', model: cssVarStore.get(CssVarStoreKey.LIGHT_ACCENT)},
+		{
+			icon: 'mdi-format-color-fill',
+			color: 'Background',
+			model: cssVarStore.get(CssVarStoreKey.LIGHT_BACKGROUND),
+		},
+		{
+			icon: 'mdi-format-color-text',
+			color: 'Text',
+			model: cssVarStore.get(CssVarStoreKey.LIGHT_TEXT),
+		},
+		{
+			icon: 'mdi-format-color-highlight',
+			color: 'Accent',
+			model: cssVarStore.get(CssVarStoreKey.LIGHT_ACCENT),
+			separatorAfter: true,
+		},
+		{
+			icon: 'mdi-function',
+			color: 'Code Syntax',
+			model: cssVarStore.get(CssVarStoreKey.LIGHT_CODE_SYNTAX),
+		},
+		{
+			icon: 'mdi-variable',
+			color: 'Code Entity',
+			model: cssVarStore.get(CssVarStoreKey.LIGHT_CODE_ENTITY),
+		},
+		{
+			icon: 'mdi-numeric',
+			color: 'Code Value',
+			model: cssVarStore.get(CssVarStoreKey.LIGHT_CODE_VALUE),
+		},
 	],
 
 	colorsDark = [
-		{icon: 'mdi-format-color-fill', color: 'Background', model: cssVarStore.get(CssVarStoreKey.DARK_BACKGROUND)},
-		{icon: 'mdi-format-color-text', color: 'Text', model: cssVarStore.get(CssVarStoreKey.DARK_TEXT)},
-		{icon: 'mdi-format-color-highlight', color: 'Accent', model: cssVarStore.get(CssVarStoreKey.DARK_ACCENT)},
+		{
+			icon: 'mdi-format-color-fill',
+			color: 'Background',
+			model: cssVarStore.get(CssVarStoreKey.DARK_BACKGROUND),
+		},
+		{
+			icon: 'mdi-format-color-text',
+			color: 'Text',
+			model: cssVarStore.get(CssVarStoreKey.DARK_TEXT),
+		},
+		{
+			icon: 'mdi-format-color-highlight',
+			color: 'Accent',
+			model: cssVarStore.get(CssVarStoreKey.DARK_ACCENT),
+			separatorAfter: true,
+		},
+		{
+			icon: 'mdi-function',
+			color: 'Code Syntax',
+			model: cssVarStore.get(CssVarStoreKey.DARK_CODE_SYNTAX),
+		},
+		{
+			icon: 'mdi-variable',
+			color: 'Code Entity',
+			model: cssVarStore.get(CssVarStoreKey.DARK_CODE_ENTITY),
+		},
+		{
+			icon: 'mdi-numeric',
+			color: 'Code Value',
+			model: cssVarStore.get(CssVarStoreKey.DARK_CODE_VALUE),
+		},
 	],
 
 	colors$ = computed(() => colorScheme$.value === 'light' ? colorsLight : colorsDark),

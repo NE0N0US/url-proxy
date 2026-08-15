@@ -44,6 +44,7 @@ function getReqBody() {
 		formTextValue: '',
 		formPagination: {page: 1, rowsPerPage: 1},
 		fileAccept: '*/*',
+		textLang: null as null | string,
 		value: null as ReqBody,
 	}
 }

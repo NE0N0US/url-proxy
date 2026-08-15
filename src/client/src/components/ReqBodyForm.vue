@@ -11,16 +11,13 @@
 		/>
 	</div>
 	<q-separator v-if="value$ !== null || type$ === ReqBodyType.FILE"/>
-	<q-input
-		v-if="type$ === ReqBodyType.TEXT && typeof value$ === 'string'"
-		class="grow q-px-md q-py-xs shadow-text-always"
-		spellcheck="false" autocomplete="off"
-		:shadow-text="value$ ? ' ' : 'Input text'"
-		autogrow
-		v-model="<string>value$"
-		borderless hide-bottom-space dense
-		input-class="artisan-mono"
-	/>
+	<template v-if="type$ === ReqBodyType.TEXT && typeof value$ === 'string'">
+		<code-editor
+			:placeholder="textPlaceholder$"
+			v-model:lang="<any>textLang$"
+			v-model="<string>value$"
+		/>
+	</template>
 	<template v-else-if="type$ === ReqBodyType.FILE && (value$ === null || value$ instanceof FileClass)">
 		<div class="url-field-pair row no-wrap">
 			<suggested-input
@@ -84,6 +81,7 @@
 import {computed, useTemplateRef} from 'vue'
 import {
 	AppService,
+	CodeEditor,
 	FileInputField,
 	ReqKvTable,
 	ReqBodyType,
@@ -133,6 +131,23 @@ const
 	]),
 
 	fileAccept$ = defineModel<string>('file-accept', {required: true}),
+
+	textLang$ = defineModel<null | string>('text-lang', {required: true}),
+
+	textPlaceholder$ = computed(() => {
+		switch (textLang$.value) {
+			case 'javascript':
+				return 'Enter JavaScript code'
+			case 'json':
+				return 'Enter JSON data'
+			case 'html':
+				return 'Enter HTML code'
+			case 'xml':
+				return 'Enter XML data'
+			default:
+				return 'Enter text'
+		}
+	}),
 
 	value$ = defineModel<ReqBody>()
 

@@ -14,7 +14,9 @@
 			html.classList.add('artisan-' + (localStorage.getItem('color-scheme') ?? 'auto'))
 			;[
 				'--light-text', '--light-background', '--light-accent',
+				'--light-code-syntax', '--light-code-entity', '--light-code-value',
 				'--dark-text', '--dark-background', '--dark-accent',
+				'--dark-code-syntax', '--dark-code-entity', '--dark-code-value',
 			]
 				.forEach(name =>
 					html.style.setProperty(name, localStorage.getItem(name) || null)
