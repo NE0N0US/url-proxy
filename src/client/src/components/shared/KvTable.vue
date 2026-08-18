@@ -1,7 +1,7 @@
 <template>
 <q-input
 	v-if="textMode$"
-	class="artisan-req-kv-table q-px-md q-py-xs shadow-text-always shadow-text-3"
+	class="artisan-kv-table q-px-md q-py-xs shadow-text-always shadow-text-3"
 	spellcheck="false" autocomplete="off"
 	:shadow-text="text$ ? ' ' : 'Cells separated by newlines\nRows separated by blank lines\nRows commented out with //'"
 	autogrow
@@ -23,7 +23,7 @@
 		</q-btn>
 	</template>
 </q-input>
-<div v-else class="artisan-req-kv-table">
+<div v-else class="artisan-kv-table">
 	<q-table
 		class="fit bg-background text-text"
 		:ref="table => table$ = <QTable>table"

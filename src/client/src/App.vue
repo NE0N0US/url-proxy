@@ -16,7 +16,8 @@ onErrorCaptured((error, _component, info) => {
 const
 	listenerPreventLayoutDrag = useEventListener(document.documentElement, 'dragstart', (event: DragEvent) => {
 		const
-			{commonAncestorContainer} = document.getSelection()?.getRangeAt(0) ?? {},
+			selection = document.getSelection(),
+			{commonAncestorContainer} = selection?.rangeCount ? selection?.getRangeAt(0) ?? {} : {},
 			selectedText = window.getSelection()?.toString()
 		if (commonAncestorContainer === document.body
 			|| !selectedText

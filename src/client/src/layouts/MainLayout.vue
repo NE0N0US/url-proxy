@@ -188,11 +188,10 @@
 									<q-tab-panels
 										class="grow bg-background text-text"
 										:inert="req$.fetching"
-										:keep-alive="false"
 										v-model="req$.tab"
 									>
 										<q-tab-panel class="overflow-hidden q-pa-none" name="params">
-											<req-kv-table
+											<kv-table
 												class="fit"
 												v-model:text-mode="req$.params.textMode"
 												v-model:text-value="req$.params.textValue"
@@ -201,7 +200,7 @@
 											/>
 										</q-tab-panel>
 										<q-tab-panel class="overflow-hidden q-pa-none" name="headers">
-											<req-kv-table
+											<kv-table
 												class="fit"
 												v-model:text-mode="req$.headers.textMode"
 												v-model:text-value="req$.headers.textValue"
@@ -245,11 +244,71 @@
 							@click.passive="collapse$ = collapse$ === 'end' ? null : 'end'"
 						/>
 						<q-toolbar-title>Response</q-toolbar-title>
-						<q-btn icon="mdi-dots-vertical" :disable="collapse$ === 'end'" flat round :ripple="ripple$"/>
+						<q-btn icon="mdi-dots-vertical" :disable="collapse$ === 'end'" flat round :ripple="ripple$">
+							<!-- search, copy, download, clear -->
+						</q-btn>
 					</q-toolbar>
 				</template>
 				<template #content-end>
-					<div class="q-pa-toolbar">Response…</div>
+					<div class="full-width grow column no-wrap overflow-hidden">
+						<div class="row no-wrap gap-sm">
+							<q-tabs
+								align="left" narrow-indicator inline-label no-caps
+								v-model="resTab$"
+							>
+								<q-tab
+									icon="mdi-text-box-outline"
+									label="Body"
+									name="body"
+									:ripple="ripple$"
+								/>
+								<q-tab
+									icon="mdi-table"
+									label="Headers"
+									name="headers"
+									:ripple="ripple$"
+								/>
+							</q-tabs>
+							<q-space/>
+							<div class="row no-wrap items-center gap-sm overflow-auto">
+								<q-chip label="200 OK" :ripple="false"/>
+								<!-- tooltip -->
+								<q-chip label="500 ms" :ripple="false"/>
+								<q-chip label="700 B" :ripple="false"/>
+								<q-chip label="application/json" :ripple="false"/>
+							</div>
+							<div/>
+						</div>
+						<q-separator/>
+						<div class="grow overflow-auto">
+							<q-tab-panels class="fit bg-background text-text" v-model="resTab$">
+								<q-tab-panel class="q-pa-none overflow-hidden" name="body">
+									<div class="fit column no-wrap">
+										<q-tabs
+											align="left" narrow-indicator inline-label no-caps
+											v-model="resBodyTab$"
+										>
+											<q-tab
+												v-for="{label, name} of RES_BODY_OPTIONS" :key="name"
+												:label="label" :name="name"
+												:ripple="ripple$"
+											/>
+										</q-tabs>
+										<q-separator/>
+										<div class="grow overflow-hidden">
+											<object
+												class="fit overflow-auto"
+												:data="`https://picsum.photos/${resBodySize$.width}/${resBodySize$.height}`"
+												type="image/jpeg"
+												:width="resBodySize$.width" :height="resBodySize$.height"
+											/>
+											<q-resize-observer @resize="resBodySize$ = $event"/>
+										</div>
+									</div>
+								</q-tab-panel>
+							</q-tab-panels>
+						</div>
+					</div>
 				</template>
 			</splitter-accordion>
 		</main>
@@ -265,6 +324,15 @@
 	:deep(.q-drawer__opener) {
 		display: none;
 	}
+}
+
+.q-chip {
+	margin: 0;
+	min-width: min-content;
+	border: 1px solid var(--color-border);
+	background-color: var(--color-background);
+	color: var(--color-text);
+	user-select: none;
 }
 </style>
 
@@ -283,7 +351,7 @@ import {
 	HttpMethodField,
 	Req,
 	ReqUrlField,
-	ReqKvTable,
+	KvTable,
 	ReqBodyForm,
 	ReqOptionsForm,
 	ReqService,
@@ -310,7 +378,7 @@ const
 	watcherAltO = whenever(keys$.alt_o!, () => req$.value.tab = 'options'),
 
 	drawer$ = ref(false),
-	collapse$ = ref<null | 'start' | 'end'>('end'),
+	collapse$ = ref<null | 'start' | 'end'>('start'),
 	loading$ = ref(false),
 
 	title$ = useTitle(() => 'URL Artisan' + (req$.value.urlValid ? `: ${
@@ -427,11 +495,28 @@ function extractCurlProxy() {
 	}
 }
 
+const
+	resTab$ = ref('body'),
+
+	resBodyTab$ = ref('preview'),
+
+	resBodySize$ = ref({width: 0, height: 0}),
+
+	RES_BODY_OPTIONS = AppService.freeze([
+		{label: 'Preview', name: 'preview'},
+		{label: 'Plain Text', name: 'plaintext'},
+		{label: 'JavaScript', name: 'javascript'},
+		{label: 'JSON', name: 'json'},
+		{label: 'HTML', name: 'html'},
+		{label: 'XML', name: 'xml'},
+		{label: 'HEX', name: 'hex'},
+	])
+
 /* TODO:
-code editor: minify/beautify
-response
-dialogs: cookies, encode/decode, examples, about
+dialogs: cookies, encode/decode, code editor, examples, about (MDN - external help)
+UI deep linking? dialogs, tabs
 keyboard controls: alt-*, table pagination, code editor keymaps
+package.json keywords?
 
 https://vueuse.org/core/useWebWorkerFn/
 https://vueuse.org/core/useNetwork/

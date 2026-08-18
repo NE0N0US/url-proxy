@@ -44,7 +44,7 @@
 			<q-separator/>
 		</div>
 	</template>
-	<req-kv-table
+	<kv-table
 		v-else-if="[ReqBodyType.FORM_URLENCODED, ReqBodyType.FORM_MULTIPART].includes(type$) && Array.isArray(value$)"
 		class="grow"
 		:multipart-form="type$ === ReqBodyType.FORM_MULTIPART"
@@ -65,7 +65,7 @@
 				{{type$ === ReqBodyType.FORM_URLENCODED ? 'Add Files' : 'Remove Files'}}
 			</q-tooltip>
 		</q-btn>
-	</req-kv-table>
+	</kv-table>
 </div>
 </template>
 
@@ -83,7 +83,7 @@ import {
 	AppService,
 	CodeEditor,
 	FileInputField,
-	ReqKvTable,
+	KvTable,
 	ReqBodyType,
 	type ReqBody,
 	type ReqKV,

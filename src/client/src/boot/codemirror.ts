@@ -4,7 +4,6 @@ import {dropCursor, highlightActiveLineGutter, keymap, lineNumbers} from '@codem
 import {defaultKeymap, history, historyKeymap} from '@codemirror/commands'
 import {bracketMatching, foldGutter, foldKeymap, HighlightStyle, indentOnInput, syntaxHighlighting} from '@codemirror/language'
 import {highlightSelectionMatches} from '@codemirror/search'
-import {EditorView} from 'codemirror'
 import {tags} from "@lezer/highlight"
 
 const artisanHighlightStyle = HighlightStyle.define([
@@ -51,6 +50,5 @@ export default defineBoot(({app}) => {
 		highlightSelectionMatches(),
 		bracketMatching(),
 		syntaxHighlighting(artisanHighlightStyle),
-		EditorView.lineWrapping,
 	]})
 })

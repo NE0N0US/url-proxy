@@ -258,7 +258,7 @@
 						'max-height': (tableHeight - 49) + 'px',
 					}"
 				>
-					<req-kv-table
+					<kv-table
 						v-for="table, _key, index of options$.curlProxy.headersAll" :key="table.name"
 						class="full-width relative-position overflow-auto"
 						:class="{invisible: options$.curlProxy.tab !== table.name}"
@@ -354,7 +354,7 @@ import {
 	HttpMethodField,
 	MenuItem,
 	ReqBodyForm,
-	ReqKvTable,
+	KvTable,
 	ReqOptionsFormToggle,
 	type ReqOptions,
 	ResBodyForm,

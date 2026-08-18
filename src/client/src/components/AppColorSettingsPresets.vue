@@ -21,32 +21,34 @@ const
 	}>(),
 
 	preset$ = defineModel<string[]>({required: true}),
-
 	PRESETS_LIGHT = AppService.freeze([
 		// https://github.com/76784/Daobeam#comparison-of-biege-background-usages
 		{icon: 'mdi-weather-sunny', label: 'Light', caption: 'Warm low-contrast', colors: [
-			'#e0dbc7', '#171717', '#0000e4',
-			'#bd00be', '#d60061', '#b45800',
+			'#e0dbc7', '#171717', '#575aff',
+			'#c100c2', '#d90062', '#b65a00',
+		]},
+		{icon: 'mdi-weather-sunny', label: 'Light Gray', caption: 'Neutral low-contrast', colors: [
+			'#dbdbdb', '#171717', '#d90062',
+			'#c100c2', '#d90062', '#b65a00',
 		]},
 		{icon: 'mdi-brightness-7', label: 'White', caption: 'Bright high-contrast', colors: [
 			'#ffffff', '#000000', '#00aaff',
-			'#c000c2', '#d90062', '#b65a00',
+			'#c100c2', '#d90062', '#b65a00',
 		]},
 	]),
 
 	PRESETS_DARK = AppService.freeze([
-		// https://apcacontrast.com/
 		{icon: 'mdi-weather-night', label: 'Dark', caption: 'Blue-gray low-contrast', colors: [
-			'#1a1d2b', '#dcdcdc', '#dea81e',
-			'#fc94f9', '#fd88a3', '#fcaa75',
+			'#1a1d2b', '#dcdcdc', '#bc9d00',
+			'#ff6cfe', '#ff618e', '#ff974f',
 		]},
-		{icon: 'mdi-circle-half-full', label: 'Gray', caption: 'Neutral low-contrast', colors: [
-			'#1e1e1e', '#dcdcdc', '#de666b',
-			'#de6fdc', '#df6685', '#de8b55',
+		{icon: 'mdi-circle-half-full', label: 'Dark Gray', caption: 'Neutral low-contrast', colors: [
+			'#1e1e1e', '#dcdcdc', '#ff618e',
+			'#ff6cfe', '#ff618e', '#ff974f',
 		]},
 		{icon: 'mdi-brightness-4', label: 'Black', caption: 'AMOLED high-contrast', colors: [
 			'#000000', '#ffffff', '#fe7000',
-			'#ff6cfd', '#ff618e', '#ff974f',
+			'#ff6cfe', '#ff618e', '#ff974f',
 		]},
 	])
 </script>

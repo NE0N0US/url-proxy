@@ -19,7 +19,7 @@
 		<template #before>
 			<div class="fit column no-wrap">
 				<div class="full-width grow column no-wrap overflow-hidden">
-					<div class="grow overflow-auto column no-wrap">
+					<div class="grow overflow-auto column no-wrap" :inert="collapse$ === 'start'">
 						<slot name="content-start"/>
 					</div>
 				</div>
@@ -33,7 +33,7 @@
 						<q-resize-observer debounce="0" @resize="heightEnd$ = $event.height"/>
 					</div>
 					<q-separator/>
-					<div class="grow overflow-auto column no-wrap">
+					<div class="grow overflow-auto column no-wrap" :inert="collapse$ === 'end'">
 						<slot name="content-end"/>
 					</div>
 				</div>
@@ -105,7 +105,7 @@ const
 
 	limits$ = computed(() => [
 		heightStart$.value,
-		Math.max(0, height$.value - 2 * heightEnd$.value - 1 - heightStart$.value),
+		Math.max(0, height$.value - 2 * heightEnd$.value - heightStart$.value - 2),
 	].sort((a, b) => a - b)),
 
 	watcherLimits = watch(limits$, () => {
