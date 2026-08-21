@@ -1,4 +1,4 @@
-import {SearchParam} from '../../../lib/proxy/params'
+import {SearchParam} from '../../../lib/proxy/search-param'
 import {AppService, Req, ReqBodyType, type ReqKV} from '@'
 
 export class ReqService {

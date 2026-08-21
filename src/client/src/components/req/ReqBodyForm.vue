@@ -13,7 +13,6 @@
 	<q-separator v-if="value$ !== null || type$ === ReqBodyType.FILE"/>
 	<template v-if="type$ === ReqBodyType.TEXT && typeof value$ === 'string'">
 		<code-editor
-			:placeholder="textPlaceholder$"
 			v-model:lang="<any>textLang$"
 			v-model="<string>value$"
 		/>
@@ -133,21 +132,6 @@ const
 	fileAccept$ = defineModel<string>('file-accept', {required: true}),
 
 	textLang$ = defineModel<null | string>('text-lang', {required: true}),
-
-	textPlaceholder$ = computed(() => {
-		switch (textLang$.value) {
-			case 'javascript':
-				return 'Enter JavaScript code'
-			case 'json':
-				return 'Enter JSON data'
-			case 'html':
-				return 'Enter HTML code'
-			case 'xml':
-				return 'Enter XML data'
-			default:
-				return 'Enter text'
-		}
-	}),
 
 	value$ = defineModel<ReqBody>()
 

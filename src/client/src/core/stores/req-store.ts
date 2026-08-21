@@ -105,7 +105,9 @@ export const useReqStore = createSharedComposable(() => {
 						JSON.parse(JSON.stringify(req$.value)),
 						{
 							id: Math.max(-1, ...reqs.map(({id}) => id)) + 1,
-							fetching: false,
+							_state: 'idle',
+							_abort: null,
+							result: null,
 						} as Req
 					)
 				reqs.splice(reqs.indexOf(req$.value) + 1, 0, req)

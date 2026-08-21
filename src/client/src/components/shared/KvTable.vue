@@ -9,13 +9,13 @@
 	:readonly="readonly"
 	borderless hide-bottom-space dense
 	input-class="artisan-mono"
-	@keydown.shift.enter.passive="saveText()"
+	@keydown.shift.enter.passive="saveText(readonly)"
 >
 	<template #after>
 		<q-btn
 			:icon="readonly ? 'mdi-arrow-left' : 'mdi-content-save-outline'"
 			flat round color="text" :ripple="ripple$"
-			@click.passive="saveText()"
+			@click.passive="saveText(readonly)"
 		>
 			<q-tooltip v-if="!readonly" :delay="300" transition-duration="0">
 				Save
@@ -117,6 +117,7 @@
 						</q-tooltip>
 					</q-btn>
 					<q-btn
+						v-if="!readonly"
 						:icon="props.row !== ghostRow ? 'mdi-trash-can-outline' : 'mdi-plus'"
 						:disable="readonly || props.row === ghostRow && !!pagination$.filter?.query"
 						flat round color="text" :ripple="ripple$"
@@ -309,7 +310,10 @@ const
 		},
 	},
 
-	allRows$ = computed(() => [...rows$.value, ghostRow]),
+	allRows$ = computed(() => [
+		...rows$.value,
+		...(!$props.readonly || !rows$.value.length) ? [ghostRow] : [],
+	]),
 
 	pagination$ = defineModel<{
 		sortBy?: string | null,
@@ -335,19 +339,21 @@ const
 		set: value => rows$.value = rows$.value.map(row => ({...row, disable: !value})),
 	})
 
-function saveText() {
-	rows$.value = text$.value.split('\n\n').filter(row => row).map(row => {
-		const
-			[key, value] = row.split('\n') as [string, string | undefined],
-			disable = key.startsWith('//')
-		return {
-			disable,
-			key: disable ? key.slice(2) : key,
-			value: value ?? '',
-		}
-	})
+function saveText(cancel = false) {
+	if (!cancel)
+		rows$.value = text$.value.split('\n\n').filter(row => row).map(row => {
+			const
+				[key, value] = row.split('\n') as [string, string | undefined],
+				disable = key.startsWith('//')
+			return {
+				disable,
+				key: disable ? key.slice(2) : key,
+				value: value ?? '',
+			}
+		})
 	textMode$.value = false
-	text$.value = ''
+	if (!cancel)
+		text$.value = ''
 }
 
 function updateHeight(height: number) {
@@ -445,7 +451,7 @@ function filterRows(
 				: [...fuzzysort.go(filter.query, view, {keys: ['key', 'value']})]
 					.sort(({score: a}, {score: b}) => b - a)
 					.map(({obj}) => obj.row)
-		if (!result.includes(ghostRow as any))
+		if (!result.includes(ghostRow as any) && !($props.readonly && result.length))
 			result.push(ghostRow as any)
 		filterError$.value = false
 		return result

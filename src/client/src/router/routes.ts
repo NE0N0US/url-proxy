@@ -1,4 +1,5 @@
-import type {RouteRecordRaw} from 'vue-router'
+import {type RouteRecordRaw} from 'vue-router'
+import {MainLayout} from '@'
 
 const routes: RouteRecordRaw[] = [
 	// {
@@ -15,7 +16,7 @@ const routes: RouteRecordRaw[] = [
 	// https://vueuse.org/core/useUrlSearchParams/
 	{
 		path: '/:catchAll(.*)*',
-		component: () => import('@/layouts/MainLayout.vue'),
+		component: MainLayout,
 	},
 ]
 

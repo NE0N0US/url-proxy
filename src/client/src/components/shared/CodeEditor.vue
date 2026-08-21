@@ -5,7 +5,7 @@
 			class="non-selectable"
 			inline
 			v-model="lang$"
-			:options="langs"
+			:options="LANGS"
 			color="text"
 		/>
 	</div>
@@ -13,26 +13,28 @@
 		v-model="value$"
 		:disabled="disabled"
 		:tab-size="tabSize ?? 4"
-		:placeholder="placeholder!"
+		:placeholder="placeholder
+			?? ('Enter ' + (LANG_PLACEHOLDER[lang$ ?? ''] ?? 'text'))"
 		:extensions="extensions$"
 	/>
 	<div
-		v-if="lang$ === 'javascript' || lang$ === 'json'"
+		v-if="!disabled && <string>lang$ in langExtensions"
 		class="q-pa-xs row no-wrap gap-xs"
 	>
-		<q-btn
-			label="Minify"
-			icon="mdi-arrow-collapse-vertical"
-			:disable="!value$"
-			no-caps no-wrap flat rounded
-			@click.passive="minify()"
-		/>
 		<q-btn
 			label="Prettify"
 			icon="mdi-format-indent-increase"
 			:disable="!value$"
 			no-caps no-wrap flat rounded
 			@click.passive="prettify()"
+		/>
+		<q-btn
+			v-if="lang$ !== 'html'"
+			label="Minify"
+			icon="mdi-arrow-collapse-vertical"
+			:disable="!value$"
+			no-caps no-wrap flat rounded
+			@click.passive="minify()"
 		/>
 	</div>
 </div>
@@ -57,10 +59,7 @@ import {javascript} from '@codemirror/lang-javascript'
 import {json} from '@codemirror/lang-json'
 import {html} from '@codemirror/lang-html'
 import {xml} from '@codemirror/lang-xml'
-import {minify as minifyJs} from 'terser'
-import {format as prettifyJs} from 'prettier'
-import * as babel from 'prettier/plugins/babel'
-import * as estree from 'prettier/plugins/estree'
+import {CodeService} from '@'
 
 const
 	$q = useQuasar(),
@@ -73,7 +72,7 @@ const
 		noLineWrap?: boolean | undefined,
 	}>(),
 
-	langs = [
+	LANGS = [
 		{label: 'Plain Text', value: null},
 		{label: 'JavaScript', value: 'javascript'},
 		{label: 'JSON', value: 'json'},
@@ -98,71 +97,34 @@ const
 		]
 	}),
 
-	value$ = defineModel<string>({required: true})
+	value$ = defineModel<string>({required: true}),
+
+	LANG_PLACEHOLDER: any = {
+		javascript: 'JavaScript code',
+		json: 'JSON data',
+		html: 'HTML code',
+		xml: 'XML data',
+	}
 
 async function minify() {
-	switch (lang$.value) {
-		case 'javascript':
-			try {
-				value$.value = (await minifyJs(value$.value, {
-					compress: false,
-					mangle: false,
-					format: {
-						ecma: 2025,
-						keep_numbers: true,
-						quote_style: 3,
-					},
-				})).code ?? ''
-			}
-			catch (error) {
-				console.error(error)
-				$q.notify('Error minifying JavaScript code')
-			}
-			break
-		case 'json':
-			try {
-				value$.value = JSON.stringify(JSON.parse(value$.value))
-			}
-			catch (error) {
-				console.error(error)
-				$q.notify('Error minifying JSON data')
-			}
-			break
+	const lang = lang$.value ?? ''
+	try {
+		value$.value = await CodeService.minify(value$.value, lang)
+	}
+	catch (error) {
+		console.error(error)
+		$q.notify('Error minifying ' + LANG_PLACEHOLDER[lang])
 	}
 }
 
 async function prettify() {
-	switch (lang$.value) {
-		case 'javascript':
-			try {
-				value$.value = await prettifyJs(value$.value, {
-					parser: 'babel',
-					plugins: [babel, estree],
-					printWidth: 120,
-					tabWidth: 4,
-					useTabs: true,
-					semi: false,
-					singleQuote: true,
-					quoteProps: 'preserve',
-					trailingComma: 'es5',
-					bracketSpacing: false,
-					arrowParens: 'avoid',
-				})
-			}
-			catch (error) {
-				console.error(error)
-				$q.notify('Error prettifying JavaScript code')
-			}
-			break
-		case 'json':
-			try {
-				value$.value = JSON.stringify(JSON.parse(value$.value), undefined, '\t')
-			}
-			catch (error) {
-				console.error(error)
-				$q.notify('Error prettifying JSON data')
-			}
-			break
+	const lang = lang$.value ?? ''
+	try {
+		value$.value = await CodeService.prettify(value$.value, lang)
+	}
+	catch (error) {
+		console.error(error)
+		$q.notify('Error prettifying ' + LANG_PLACEHOLDER[lang])
 	}
 }
 </script>

@@ -50,6 +50,20 @@ export default defineConfig(ctx => {
 				strict: true,
 				vueShim: false,
 			},
+			extendViteConf(viteConf) {
+				viteConf.build ??= {}
+				viteConf.build.chunkSizeWarningLimit = Infinity
+				viteConf.build.rolldownOptions ??= {}
+				if (Array.isArray(viteConf.build.rolldownOptions.output)) {
+					if (!viteConf.build.rolldownOptions.output.length)
+						viteConf.build.rolldownOptions.output.push({})
+					viteConf.build.rolldownOptions.output[0]!.codeSplitting = false
+				}
+				else {
+					viteConf.build.rolldownOptions.output ??= {}
+					viteConf.build.rolldownOptions.output.codeSplitting = false
+				}
+			},
 			// TODO: infer final target
 			// ['es2022', 'firefox115', 'chrome115', 'safari14']
 			// target: {

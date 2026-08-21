@@ -250,11 +250,17 @@
 					</q-toolbar>
 				</template>
 				<template #content-end>
-					<div class="full-width grow column no-wrap overflow-hidden">
+					<div v-if="req$.result && 'error' in req$.result" class="res-message">
+						Error getting response. This may be due to an invalid URL, credentials in the URL, browser restrictions, or a network error. Try using <a href="/">cURL Proxy</a> to bypass browser restrictions, or check your network connection.
+					</div>
+					<div v-else-if="!req$.result" class="res-message">
+						No response received yet. Send a request to see the response here.
+					</div>
+					<div v-else class="full-width grow column no-wrap overflow-hidden">
 						<div class="row no-wrap gap-sm">
 							<q-tabs
 								align="left" narrow-indicator inline-label no-caps
-								v-model="resTab$"
+								v-model="req$.resultTab"
 							>
 								<q-tab
 									icon="mdi-text-box-outline"
@@ -271,22 +277,64 @@
 							</q-tabs>
 							<q-space/>
 							<div class="row no-wrap items-center gap-sm overflow-auto">
-								<q-chip label="200 OK" :ripple="false"/>
-								<!-- tooltip -->
-								<q-chip label="500 ms" :ripple="false"/>
-								<q-chip label="700 B" :ripple="false"/>
-								<q-chip label="application/json" :ripple="false"/>
+								<template v-if="!!req$.result?.res">
+									<q-chip :label="req$.result!.res!.status" :ripple="false">
+										<q-tooltip
+											v-if="req$.result!.res!.statusText"
+											:delay="300" transition-duration="0"
+										>
+											{{req$.result!.res!.statusText}}
+										</q-tooltip>
+									</q-chip>
+									<q-chip v-if="!req$.result!.blob" :ripple="false">
+										<q-spinner-dots size="21px"/>
+									</q-chip>
+									<template v-else>
+										<q-chip
+											:label="formatResTime(req$.result!.resMs! + req$.result!.blobMs!)"
+											:ripple="false"
+										>
+											<q-tooltip :delay="300" transition-duration="0">
+												{{
+													formatResTime(req$.result!.resMs!)
+												}} + {{
+													formatResTime(req$.result!.blobMs!)
+												}}
+											</q-tooltip>
+										</q-chip>
+										<q-chip
+											v-if="req$.result!.blob.size"
+											:label="AppService.formatDataSize(req$.result!.blob.size)"
+											:ripple="false"
+										>
+											<q-tooltip
+												v-if="req$.result!.blob.size >= 1024"
+												:delay="300" transition-duration="0"
+											>
+												{{AppService.formatNumber(req$.result!.blob.size)}} B
+											</q-tooltip>
+										</q-chip>
+										<q-chip
+											v-if="req$.result!.blob.size && req$.result!.blob.type"
+											:label="req$.result!.blob.type"
+											:ripple="false"
+										/>
+									</template>
+								</template>
+								<q-chip v-else-if="req$.fetching" :ripple="false">
+									<q-spinner-dots size="21px"/>
+								</q-chip>
 							</div>
 							<div/>
 						</div>
 						<q-separator/>
 						<div class="grow overflow-auto">
-							<q-tab-panels class="fit bg-background text-text" v-model="resTab$">
+							<q-tab-panels class="fit bg-background text-text" v-model="req$.resultTab">
 								<q-tab-panel class="q-pa-none overflow-hidden" name="body">
-									<div class="fit column no-wrap">
+									<div v-if="req$.result?.blob?.size" class="fit column no-wrap">
 										<q-tabs
 											align="left" narrow-indicator inline-label no-caps
-											v-model="resBodyTab$"
+											v-model="req$.resultBodyTab"
 										>
 											<q-tab
 												v-for="{label, name} of RES_BODY_OPTIONS" :key="name"
@@ -295,16 +343,42 @@
 											/>
 										</q-tabs>
 										<q-separator/>
-										<div class="grow overflow-hidden">
+										<div v-if="req$.resultBodyTab === 'preview'" class="grow overflow-hidden">
 											<object
 												class="fit overflow-auto"
-												:data="`https://picsum.photos/${resBodySize$.width}/${resBodySize$.height}`"
-												type="image/jpeg"
+												:key="req$.result.blob.type"
+												:data="resBlobUrl$"
+												:type="req$.result.blob.type"
 												:width="resBodySize$.width" :height="resBodySize$.height"
 											/>
 											<q-resize-observer @resize="resBodySize$ = $event"/>
 										</div>
+										<div v-else-if="req$.resultBodyTab === 'hex'" class="res-message">
+											WIP
+										</div>
+										<code-editor v-else
+											class="overflow-auto"
+											no-lang-options
+											disabled
+											placeholder="Loading…"
+											:lang="<any>req$.resultBodyTab"
+											:model-value="resText$"
+										/>
 									</div>
+									<div v-else-if="req$.result.blob" class="res-message">
+										No response body.
+									</div>
+								</q-tab-panel>
+								<q-tab-panel class="q-pa-none overflow-hidden" name="headers">
+									<kv-table
+										class="fit overflow-auto"
+										readonly
+										hide-columns="disable"
+										v-model:text-mode="req$.resultHeadersTextMode"
+										:text-value="''"
+										v-model="resHeaders$"
+										v-model:pagination="req$.resultHeadersPagination"
+									/>
 								</q-tab-panel>
 							</q-tab-panels>
 						</div>
@@ -334,15 +408,29 @@
 	color: var(--color-text);
 	user-select: none;
 }
+
+.res-message {
+	padding: 8px 12px;
+
+	a {
+		color: var(--q-primary) !important;
+	}
+}
+
+object {
+	object-fit: scale-down;
+}
 </style>
 
 <script setup lang="ts">
-import {computed, onMounted, ref, useTemplateRef} from 'vue'
+import {computed, onMounted, onUnmounted, ref, useTemplateRef, watch} from 'vue'
 import {copyToClipboard, useQuasar} from 'quasar'
-import {useEventListener, useMagicKeys, useTitle, whenever} from '@vueuse/core'
+import {computedAsync, useEventListener, useMagicKeys, useTitle, whenever} from '@vueuse/core'
 import {toUnicode} from 'punycode'
 import {
 	AppService,
+	CodeEditor,
+	CodeService,
 	CurlService,
 	Sidenav,
 	SplitterAccordion,
@@ -378,7 +466,7 @@ const
 	watcherAltO = whenever(keys$.alt_o!, () => req$.value.tab = 'options'),
 
 	drawer$ = ref(false),
-	collapse$ = ref<null | 'start' | 'end'>('start'),
+	collapse$ = ref<null | 'start' | 'end'>(null),
 	loading$ = ref(false),
 
 	title$ = useTitle(() => 'URL Artisan' + (req$.value.urlValid ? `: ${
@@ -392,6 +480,59 @@ const
 			.some(({disable, key, value}) => !disable && key === 'url' && value)
 	),
 
+	resBodySize$ = ref({width: 0, height: 0}),
+
+	RES_BODY_OPTIONS = AppService.freeze([
+		{label: 'Preview', name: 'preview'},
+		{label: 'HEX', name: 'hex'},
+		{label: 'Plain Text', name: 'plaintext'},
+		{label: 'JSON', name: 'json'},
+		{label: 'XML', name: 'xml'},
+		{label: 'HTML', name: 'html'},
+		{label: 'JavaScript', name: 'javascript'},
+	]),
+
+	resBlobUrl$ = computed(() => {
+		const blob = req$.value.result?.blob
+		return blob ? URL.createObjectURL(blob) : undefined
+	}),
+
+	watcherResBlobUrl = watch(resBlobUrl$, (_, oldValue) => {
+		if (oldValue)
+			URL.revokeObjectURL(oldValue)
+	}),
+
+	resTextCache = new WeakMap<Blob, Record<string, string>>(),
+
+	resTextRaw$ = computedAsync(
+		() => resTextCached(
+			'raw',
+			() => req$.value.result!.blob!.text().catch(error => {
+				console.error(error)
+				return error?.toString() as string
+			})
+		),
+		''
+	),
+
+	resText$ = computedAsync(
+		() => {
+			const
+				req = req$.value,
+				textRaw = resTextRaw$.value
+			return textRaw ? resTextCached(
+				req.resultBodyTab,
+				() => CodeService.prettify(textRaw, req.resultBodyTab).catch(() => textRaw)
+			) : ''
+		},
+		''
+	),
+
+	resHeaders$ = computed(() =>
+		[...req$.value.result?.res?.headers.entries() ?? []]
+			.map(([key, value]) => ({disable: false, key, value}))
+	),
+
 	listenerPreventUnload = useEventListener(window, 'beforeunload', event => {
 		if (touched$.value) {
 			event.preventDefault()
@@ -402,6 +543,12 @@ const
 	SIDENAV_BP = 1_800
 
 onMounted(() => setTimeout(() => touched$.value = false))
+
+onUnmounted(() => {
+	const resBlobUrl = resBlobUrl$.value
+	if (resBlobUrl)
+		URL.revokeObjectURL(resBlobUrl)
+})
 
 function expandUrlEditor() {
 	$q.dialog({component: ReqUrlDialog})
@@ -469,17 +616,16 @@ function openExamples() {
 
 function openAbout() {}
 
-/** TODO: header from body (application/x-www-form-urlencoded, JS, JSON, XML), cache: no-store */
 function send(command?: 'download' | 'repeat') {
 	const
 		req = req$.value,
-		method = req.options.curlProxy.method || req.method,
 		hasBody = !!req.body.value && (req.body.value as any)?.length !== 0,
 		hasCurlProxy = !!(req.options.curlProxy.server.value && !req.options.curlProxy.server.disable),
 		hasCurlProxyBody = hasCurlProxy &&
 			!!req.options.curlProxy.body.value &&
-			(req.options.curlProxy.body.value as any)?.length !== 0
-	if (['GET', 'OPTIONS'].includes(method) && hasBody || hasCurlProxyBody)
+			(req.options.curlProxy.body.value as any)?.length !== 0,
+		method = hasCurlProxy ? (req.options.curlProxy.method || req.method) : req.method
+	if (['GET', 'OPTIONS'].includes(method) && (hasBody || hasCurlProxyBody))
 		$q.notify(method + ' request cannot have a body')
 	else
 		req$.value.fetching = true
@@ -495,24 +641,24 @@ function extractCurlProxy() {
 	}
 }
 
-const
-	resTab$ = ref('body'),
+function formatResTime(ms: number) {
+	return ms < 1_000 ? (Math.ceil(ms) + ' ms') : (+(Math.ceil(ms) / 1_000)?.toFixed(3) + ' s')
+}
 
-	resBodyTab$ = ref('preview'),
-
-	resBodySize$ = ref({width: 0, height: 0}),
-
-	RES_BODY_OPTIONS = AppService.freeze([
-		{label: 'Preview', name: 'preview'},
-		{label: 'Plain Text', name: 'plaintext'},
-		{label: 'JavaScript', name: 'javascript'},
-		{label: 'JSON', name: 'json'},
-		{label: 'HTML', name: 'html'},
-		{label: 'XML', name: 'xml'},
-		{label: 'HEX', name: 'hex'},
-	])
+async function resTextCached(cacheKey: string, compute: () => Promise<string>) {
+	const req = req$.value
+	if (!req.result?.blob || ['preview', 'hex'].includes(req.resultBodyTab))
+		return ''
+	const cache = resTextCache.get(req.result.blob) ?? {}
+	resTextCache.set(req.result.blob, cache)
+	return cache[cacheKey] ??= await compute()
+}
 
 /* TODO:
+preserve textMode in Req.patchView?
+refactor types.ts, extract class Req
+min/avg/max values and success rate for same response
+text/plain => lang*
 dialogs: cookies, encode/decode, code editor, examples, about (MDN - external help)
 UI deep linking? dialogs, tabs
 keyboard controls: alt-*, table pagination, code editor keymaps

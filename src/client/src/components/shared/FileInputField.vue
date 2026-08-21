@@ -28,7 +28,7 @@
 					</template>
 				</span>
 				<span class="file-value-size text-no-wrap">
-					{{humanStorageSize(size$)}}
+					{{AppService.formatDataSize(size$)}}
 				</span>
 			</div>
 		</template>
@@ -94,10 +94,9 @@
 
 <script setup lang="ts">
 import {computed, ref, shallowRef, useAttrs, useTemplateRef} from 'vue'
-import {format, type QFile, type QTooltip} from 'quasar'
-const {humanStorageSize} = format
+import {type QFile, type QTooltip} from 'quasar'
 import {useMouseInElement} from '@vueuse/core'
-import {useUiStore} from '@'
+import {AppService, useUiStore} from '@'
 
 const
 	{ripple$} = useUiStore(),

@@ -1,4 +1,4 @@
-import {SearchParam} from '../../../lib/proxy/params'
+import {SearchParam} from '../../../lib/proxy/search-param'
 import {AppService} from '@'
 
 /** params, headers*, application/x-www-form-urlencoded, multipart/form-data */
@@ -227,6 +227,124 @@ async function getFullUrl(req: Req) {
 		return null
 }
 
+function getRequestBody(type: ReqBodyType, body: ReqBody) {
+	switch (type) {
+		case ReqBodyType.TEXT:
+		case ReqBodyType.FILE:
+			return <string | null | File>body
+		case ReqBodyType.FORM_URLENCODED:
+		case ReqBodyType.FORM_MULTIPART:
+			const fields = (body as ReqKV[] | ReqKV<string | File[]>[])
+				.filter(({disable, key}) => !disable && key)
+				.flatMap(({key, value}) => Array.isArray(value)
+					? value.map(value => [key, value])
+					: [[key, value]]
+				)
+			if (type === ReqBodyType.FORM_URLENCODED && fields.length)
+				return new URLSearchParams(fields as string[][])
+			else if (type === ReqBodyType.FORM_MULTIPART && fields.length) {
+				const formData = new FormData()
+				fields.forEach(([key, value]) => formData.append(key as string, value!))
+				return formData
+			}
+		default:
+			return null
+	}
+}
+
+async function getRequest(req: Req) {
+	if (!req.urlValid)
+		return null
+	const aborter = new AbortController()
+	return {
+		request: new Request((await req.urlFull)!, {
+			body: getRequestBody(req.body.type, req.body.value),
+			cache: 'no-store',
+			credentials: req.options.includeCredentials ? 'include' : 'omit',
+			headers: new Headers(req.headers.rows
+				.filter(({disable, key}) => !disable && key)
+				.map(({key, value}) => [key, value] as [string, string])
+			),
+			...(req.options.integrityHashes.disable || !req.options.integrityHashes.value)
+				? {} : {integrity: req.options.integrityHashes.value},
+			method: req.method,
+			priority: 'high',
+			redirect: req.options.followRedirects ? 'follow' : 'manual',
+			signal: aborter.signal,
+		}),
+		abort: aborter.abort.bind(aborter),
+	}
+}
+
+function setFetching(req: Req, fetching: boolean) {
+	if (req.fetching !== fetching) {
+		switch (req._state) {
+			case 'idle':
+				req._state = 'prepare'
+				const aborter = new AbortController()
+				req._abort = aborter.abort.bind(aborter)
+				getRequest(req)
+					.then(request => {
+						if (!aborter.signal.aborted) {
+							if (!request)
+								req._state = 'idle'
+							else {
+								req._state = 'fetch'
+								req._abort = request.abort
+								const timeFetch = performance.now()
+								fetch(request.request)
+									.then(res => {
+										const
+											timeRes = performance.now(),
+											resMs = timeRes - timeFetch,
+											blobMs = req.result?.blobMs === undefined ? undefined
+												: req.result.blobMs - (resMs - req.result.resMs!)
+										req.result ??= {}
+										delete req.result.error
+										Object.assign(req.result, {res, resMs, blob: req.result.blob, blobMs})
+										res.blob()
+											.then(blob => {
+												if (!request.request.signal.aborted) {
+													req._state = 'idle'
+													Object.assign(req.result!, {
+														blob,
+														blobMs: performance.now() - timeRes,
+													})
+												}
+											})
+											.catch(error => {
+												if (req._state === 'fetch') {
+													req._state = 'idle'
+													Object.assign(req.result!, {error})
+												}
+											})
+									})
+									.catch(error => {
+										if (req._state === 'fetch') {
+											req._state = 'idle'
+											req.result = {error}
+										}
+									})
+							}
+						}
+					})
+					.catch(error => {
+						if (!aborter.signal.aborted) {
+							req._state = 'idle'
+							req.result = {error}
+						}
+					})
+				break
+			case 'prepare':
+			case 'fetch':
+				req._state = 'idle'
+				req._abort?.()
+				req.result = null
+				break
+		}
+	}
+}
+
 export class Req {
 	id = 0
 	method = 'GET'
@@ -242,7 +360,28 @@ export class Req {
 	headers = getReqKv()
 	body = getReqBody()
 	options = new ReqOptions()
-	fetching = false
+
+	/** @private */
+	_state: 'idle' | 'prepare' | 'fetch' = 'idle'
+	/** @private */
+	_abort: null | Function = null
+	get fetching() {
+		return this._state !== 'idle'
+	}
+	set fetching(fetching) {
+		setFetching(this, fetching)
+	}
+	result: null | Partial<{
+		res: Response,
+		resMs: number,
+		blob: Blob,
+		blobMs: number,
+		error: Error,
+	}> = null
+	resultTab = 'body'
+	resultBodyTab = 'preview'
+	resultHeadersTextMode = false
+	resultHeadersPagination = {page: 1, rowsPerPage: 1}
 
 	/** preserve tabs and paginations */
 	patchView(req: Req) {
@@ -261,6 +400,9 @@ export class Req {
 			req.options.curlProxy.headersAll.delResHeaders!.pagination
 		this.options.curlProxy.body.formPagination =
 			req.options.curlProxy.body.formPagination
+		this.resultTab = req.resultTab
+		this.resultBodyTab = req.resultBodyTab
+		this.resultHeadersPagination = req.resultHeadersPagination
 		return this
 	}
 }

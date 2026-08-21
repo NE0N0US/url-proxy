@@ -1,4 +1,23 @@
 export class AppService {
+	/** `formatNumber` + B..TiB */
+	static formatDataSize(bytes: number, fractionDigits = 1) {
+		const
+			power = Math.floor(Math.min(Math.log2(bytes) / 10, 4)),
+			number = bytes / (1024 ** power)
+		return AppService.formatNumber(number, fractionDigits)
+			+ ' ' + ['B', 'KiB', 'MiB', 'GiB', 'TiB'][power]
+	}
+
+	/** 1234567 => 1 234 567 */
+	static formatNumber(number: number, fractionDigits = 0) {
+		const
+			[integer, fraction] = (
+				+number?.toFixed(fractionDigits)
+			)?.toString().split('.'),
+			formatted = integer!.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
+		return fraction ? `${formatted}.${fraction}` : formatted
+	}
+
 	/** recursive `Object.freeze()` */
 	static freeze<T extends Object>(object: T) {
 		if (object === null || typeof object !== 'object')

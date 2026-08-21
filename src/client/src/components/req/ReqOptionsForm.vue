@@ -389,7 +389,7 @@ const
 		return !interval || !backoffMultiplier || !backoffLimit ? '' : Array<void>(Math.min(retries, 128)).fill()
 			.map((_, attempt) => {
 				const ms = Math.min(backoffMultiplier ** attempt * interval, backoffLimit)
-				return ms < 60_000 ? (+(ms / 1_000)?.toFixed(3) + 's') : (+(ms / 60_000)?.toFixed(2) + 'm')
+				return ms < 60_000 ? (+(ms / 1_000)?.toFixed(3) + ' s') : (+(ms / 60_000)?.toFixed(2) + ' m')
 			})
 			.join(', ')
 	}),
