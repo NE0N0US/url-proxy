@@ -141,11 +141,11 @@ function resetValue(type: ReqBodyType, oldType: ReqBodyType) {
 	if (type !== oldType)
 		switch(type) {
 			case ReqBodyType.NONE:
-			case ReqBodyType.TEXT:
-				value$.value = ''
-				break
 			case ReqBodyType.FILE:
 				value$.value = null
+				break
+			case ReqBodyType.TEXT:
+				value$.value = ''
 				break
 			case ReqBodyType.FORM_URLENCODED:
 			case ReqBodyType.FORM_MULTIPART:

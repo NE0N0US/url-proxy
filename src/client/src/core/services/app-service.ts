@@ -5,7 +5,7 @@ export class AppService {
 			power = Math.floor(Math.min(Math.log2(bytes) / 10, 4)),
 			number = bytes / (1024 ** power)
 		return AppService.formatNumber(number, fractionDigits)
-			+ ' ' + ['B', 'KiB', 'MiB', 'GiB', 'TiB'][power]
+			+ '\xA0' + ['B', 'KiB', 'MiB', 'GiB', 'TiB'][power]
 	}
 
 	/** 1234567 => 1 234 567 */
@@ -14,7 +14,7 @@ export class AppService {
 			[integer, fraction] = (
 				+number?.toFixed(fractionDigits)
 			)?.toString().split('.'),
-			formatted = integer!.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
+			formatted = integer!.replace(/\B(?=(\d{3})+(?!\d))/g, '\xA0')
 		return fraction ? `${formatted}.${fraction}` : formatted
 	}
 

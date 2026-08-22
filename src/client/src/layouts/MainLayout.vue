@@ -29,35 +29,28 @@
 											label="Expand URL Editor"
 											caption="Open URL in expanded editor"
 											:disable="req$.fetching || req$.params.textMode"
-											@click.passive="expandUrlEditor()"
+											@click="expandUrlEditor()"
 										/>
 										<menu-item
 											icon="mdi-link-variant"
 											label="Copy URL"
 											caption="Copy encoded request URL to clipboard"
 											:disable="!req$.urlValid"
-											@click.passive="copyUrl()"
+											@click="copyUrl()"
 										/>
 										<menu-item
 											icon="mdi-console-line"
 											label="Copy as cURL"
 											caption="Copy cURL command to clipboard"
 											:disable="!req$.urlValid"
-											@click.passive="copyCurl()"
-										/>
-										<menu-item
-											icon="mdi-file-download-outline"
-											label="Send and Download"
-											caption="Download response without displaying body"
-											:disable="!(req$.urlValid && !req$.fetching && !req$.params.textMode)"
-											@click.passive="send('download')"
+											@click="copyCurl()"
 										/>
 										<menu-item
 											icon="mdi-repeat"
 											label="Send Repeatedly"
 											caption="Repeat request after each response"
 											:disable="!(req$.urlValid && !req$.fetching && !req$.params.textMode)"
-											@click.passive="send('repeat')"
+											@click="send('repeat')"
 										/>
 										<q-separator spaced/>
 										<menu-item
@@ -65,27 +58,27 @@
 											label="Cookies"
 											caption="Manage this page's cookies"
 											disable
-											@click.passive="openCookies()"
+											@click="openCookies()"
 										/>
 										<menu-item
 											icon="mdi-swap-horizontal"
 											label="Encode and Decode"
 											caption="QR, Punycode, percent-encoding, Base64"
 											disable
-											@click.passive="openEncodeAndDecode()"
+											@click="openEncodeAndDecode()"
 										/>
 										<menu-item
 											icon="mdi-file-multiple-outline"
 											label="Examples"
 											caption="Browse request examples"
-											@click.passive="openExamples()"
+											@click="openExamples()"
 										/>
 										<menu-item
 											icon="mdi-information-outline"
 											label="About"
 											caption="About URL Artisan"
 											disable
-											@click.passive="openAbout()"
+											@click="openAbout()"
 										/>
 									</q-list>
 								</q-menu>
@@ -152,24 +145,24 @@
 									<q-tab
 										icon="mdi-magnify"
 										label="Params"
-										:alert="!!(req$.params.textValue || req$.params.rows.length)"
-										:alert-icon="req$.params.textValue ? 'mdi-content-save-edit-outline' : undefined"
+										:alert="!!(req$.params.textMode || req$.params.rows.length)"
+										:alert-icon="req$.params.textMode ? 'mdi-content-save-edit-outline' : undefined"
 										name="params"
 										:ripple="ripple$"
 									/>
 									<q-tab
 										icon="mdi-table"
 										label="Headers"
-										:alert="!!(req$.headers.textValue || req$.headers.rows.length)"
-										:alert-icon="req$.headers.textValue ? 'mdi-content-save-edit-outline' : undefined"
+										:alert="!!(req$.headers.textMode || req$.headers.rows.length)"
+										:alert-icon="req$.headers.textMode ? 'mdi-content-save-edit-outline' : undefined"
 										name="headers"
 										:ripple="ripple$"
 									/>
 									<q-tab
 										icon="mdi-text-box-outline"
 										label="Body"
-										:alert="!!(req$.body.formTextValue || req$.body.value && (req$.body.value as any)?.length !== 0)"
-										:alert-icon="req$.body.formTextValue ? 'mdi-content-save-edit-outline' : undefined"
+										:alert="req$.body.type !== ReqBodyType.NONE"
+										:alert-icon="req$.body.formTextMode ? 'mdi-content-save-edit-outline' : undefined"
 										name="body"
 										:ripple="ripple$"
 									/>
@@ -244,9 +237,43 @@
 							@click.passive="collapse$ = collapse$ === 'end' ? null : 'end'"
 						/>
 						<q-toolbar-title>Response</q-toolbar-title>
-						<q-btn icon="mdi-dots-vertical" :disable="collapse$ === 'end'" flat round :ripple="ripple$">
-							<!-- search, copy, download, clear -->
-						</q-btn>
+						<div class="row no-wrap gap-sm">
+							<q-btn
+								icon="mdi-download"
+								:disable="collapse$ === 'end' || !req$.result?.blob?.size"
+								flat round :ripple="ripple$"
+								@click.passive="downloadRes()"
+							>
+								<q-tooltip
+									v-if="!(collapse$ === 'end' || !req$.result?.blob?.size)"
+									:delay="300" transition-duration="0"
+								>
+									Download
+								</q-tooltip>
+							</q-btn>
+							<q-btn
+								icon="mdi-trash-can-outline"
+								:disable="collapse$ === 'end' || !req$.result"
+								flat round :ripple="ripple$"
+								@click.passive="req$.fetching = false; req$.result = null"
+							>
+								<q-tooltip
+									v-if="!(collapse$ === 'end' || !req$.result)"
+									:delay="300" transition-duration="0"
+								>
+									Clear
+								</q-tooltip>
+							</q-btn>
+							<q-icon
+								class="q-pa-sm"
+								:name="online$ ? 'mdi-lan-connect' : 'mdi-lan-disconnect'"
+								size="24px"
+							>
+								<q-tooltip :delay="300" transition-duration="0">
+									You are currently {{online$ ? 'online' : 'offline'}}
+								</q-tooltip>
+							</q-icon>
+						</div>
 					</q-toolbar>
 				</template>
 				<template #content-end>
@@ -297,7 +324,7 @@
 											<q-tooltip :delay="300" transition-duration="0">
 												{{
 													formatResTime(req$.result!.resMs!)
-												}} + {{
+												}} (TTFB) + {{
 													formatResTime(req$.result!.blobMs!)
 												}}
 											</q-tooltip>
@@ -311,7 +338,7 @@
 												v-if="req$.result!.blob.size >= 1024"
 												:delay="300" transition-duration="0"
 											>
-												{{AppService.formatNumber(req$.result!.blob.size)}} B
+												{{AppService.formatNumber(req$.result!.blob.size)}}&nbsp;B
 											</q-tooltip>
 										</q-chip>
 										<q-chip
@@ -353,16 +380,14 @@
 											/>
 											<q-resize-observer @resize="resBodySize$ = $event"/>
 										</div>
-										<div v-else-if="req$.resultBodyTab === 'hex'" class="res-message">
-											WIP
-										</div>
 										<code-editor v-else
 											class="overflow-auto"
 											no-lang-options
-											disabled
+											disable
 											placeholder="Loading…"
+											:no-line-wrap="req$.resultBodyTab === 'hex'"
 											:lang="<any>req$.resultBodyTab"
-											:model-value="resText$"
+											:model-value="req$.resultBodyTab === 'hex' ? resHex$ : resText$"
 										/>
 									</div>
 									<div v-else-if="req$.result.blob" class="res-message">
@@ -424,7 +449,8 @@ object {
 
 <script setup lang="ts">
 import {computed, onMounted, onUnmounted, ref, useTemplateRef, watch} from 'vue'
-import {copyToClipboard, useQuasar} from 'quasar'
+import {copyToClipboard, date, exportFile, useQuasar} from 'quasar'
+const {formatDate} = date
 import {computedAsync, useEventListener, useMagicKeys, useTitle, whenever} from '@vueuse/core'
 import {toUnicode} from 'punycode'
 import {
@@ -441,15 +467,18 @@ import {
 	ReqUrlField,
 	KvTable,
 	ReqBodyForm,
+	ReqBodyType,
 	ReqOptionsForm,
 	ReqService,
 	ReqUrlDialog,
+	useOnline,
 	useReqStore,
 	useUiStore,
 } from '@'
 
 const
 	$q = useQuasar(),
+	online$ = useOnline(),
 	{req$, touched$} = useReqStore(),
 	{ripple$} = useUiStore(),
 
@@ -503,6 +532,22 @@ const
 	}),
 
 	resTextCache = new WeakMap<Blob, Record<string, string>>(),
+
+	resHex$ = computedAsync(
+		() => {
+			const
+				req = req$.value,
+				blob = req.result?.blob
+			return req.resultBodyTab === 'hex' && blob?.size ? resTextCached(
+				'hex',
+				() => resHex(blob).catch(error => {
+					console.error(error)
+					return 'Error displaying HEX'
+				})
+			) : ''
+		},
+		''
+	),
 
 	resTextRaw$ = computedAsync(
 		() => resTextCached(
@@ -616,19 +661,19 @@ function openExamples() {
 
 function openAbout() {}
 
-function send(command?: 'download' | 'repeat') {
+function send(command?: 'repeat') {
 	const
 		req = req$.value,
-		hasBody = !!req.body.value && (req.body.value as any)?.length !== 0,
-		hasCurlProxy = !!(req.options.curlProxy.server.value && !req.options.curlProxy.server.disable),
-		hasCurlProxyBody = hasCurlProxy &&
-			!!req.options.curlProxy.body.value &&
-			(req.options.curlProxy.body.value as any)?.length !== 0,
+		hasBody = req.body.type !== ReqBodyType.NONE,
+		hasCurlProxy = !!req.options.curlProxy.server.value && !req.options.curlProxy.server.disable,
+		hasCurlProxyBody = hasCurlProxy && req.options.curlProxy.body.type !== ReqBodyType.NONE,
 		method = hasCurlProxy ? (req.options.curlProxy.method || req.method) : req.method
 	if (['GET', 'OPTIONS'].includes(method) && (hasBody || hasCurlProxyBody))
 		$q.notify(method + ' request cannot have a body')
-	else
-		req$.value.fetching = true
+	else {
+		req.fetching = true
+		req.fetchRepeat = command === 'repeat'
+	}
 }
 
 function extractCurlProxy() {
@@ -641,13 +686,43 @@ function extractCurlProxy() {
 	}
 }
 
+function downloadRes() {
+	const blob = req$.value.result?.blob
+	if (blob?.size)
+		exportFile(
+			`artisan-request-${formatDate(Date.now(), 'YYYY-MM-DDTHH-mm-ss')}`,
+			blob,
+			{mimeType: blob.type}
+		)
+}
+
 function formatResTime(ms: number) {
-	return ms < 1_000 ? (Math.ceil(ms) + ' ms') : (+(Math.ceil(ms) / 1_000)?.toFixed(3) + ' s')
+	return ms < 1_000 ? (Math.ceil(ms) + '\xA0ms')
+		: (+(Math.ceil(ms) / 1_000)?.toFixed(3) + '\xA0s')
+}
+
+async function resHex(blob: Blob, bytesPerLine = 16) {
+	const
+		bytes = new Uint8Array(await blob.arrayBuffer()),
+		lines = []
+	for (let c = 0; c < bytes.length; c += bytesPerLine) {
+		const
+			address = c.toString(16).padStart(8, '0').toUpperCase(),
+			chunk = bytes.subarray(c, c + bytesPerLine),
+			hex = Array.from(chunk, b => b.toString(16).padStart(2, '0').toUpperCase())
+				.join(' ')
+				.padEnd(bytesPerLine * 3 - 1, ' '),
+			ascii = Array.from(chunk, b =>
+				b >= 0x20 && b <= 0x7e ? String.fromCharCode(b) : '.'
+			).join('')
+		lines.push([address, hex, ascii].join('  '))
+	}
+	return lines.join('\n')
 }
 
 async function resTextCached(cacheKey: string, compute: () => Promise<string>) {
 	const req = req$.value
-	if (!req.result?.blob || ['preview', 'hex'].includes(req.resultBodyTab))
+	if (!req.result?.blob || req.resultBodyTab === 'preview')
 		return ''
 	const cache = resTextCache.get(req.result.blob) ?? {}
 	resTextCache.set(req.result.blob, cache)
@@ -655,20 +730,17 @@ async function resTextCached(cacheKey: string, compute: () => Promise<string>) {
 }
 
 /* TODO:
-preserve textMode in Req.patchView?
-refactor types.ts, extract class Req
+streamed body progress indication?
 min/avg/max values and success rate for same response
-text/plain => lang*
-dialogs: cookies, encode/decode, code editor, examples, about (MDN - external help)
+refactor main-layout
+
+dialogs: cookies, encode/decode (https://vueuse.org/core/useWebWorkerFn/), code editor, examples, about (MDN - external help)
 UI deep linking? dialogs, tabs
 keyboard controls: alt-*, table pagination, code editor keymaps
-package.json keywords?
+CSS: PX => REM?
+package.json keywords?, routes.ts, quasar.config.ts
 
-https://vueuse.org/core/useWebWorkerFn/
-https://vueuse.org/core/useNetwork/
-https://vueuse.org/core/useFetch/
 https://vueuse.org/core/useTimestamp/
-https://vueuse.org/shared/useTimeout/
 */
 
 </script>

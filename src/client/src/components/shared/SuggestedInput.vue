@@ -40,7 +40,7 @@
 							v-for="option of options" :key="option.value"
 							:icon="option.icon"
 							:label="option.label"
-							@click.passive="value$ = option.value"
+							@click="value$ = option.value"
 						>
 							<q-icon v-if="valueLast$ === option.value" name="mdi-check" color="text"/>
 						</menu-item>

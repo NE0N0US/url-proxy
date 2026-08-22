@@ -1,6 +1,6 @@
 import {defineBoot} from '#q-app'
 import VueCodemirror from 'vue-codemirror'
-import {dropCursor, highlightActiveLineGutter, keymap, lineNumbers} from '@codemirror/view'
+import {dropCursor, keymap, lineNumbers} from '@codemirror/view'
 import {defaultKeymap, history, historyKeymap} from '@codemirror/commands'
 import {bracketMatching, foldGutter, foldKeymap, HighlightStyle, indentOnInput, syntaxHighlighting} from '@codemirror/language'
 import {highlightSelectionMatches} from '@codemirror/search'
@@ -46,7 +46,7 @@ export default defineBoot(({app}) => {
 			},
 		}),
 		keymap.of(foldKeymap),
-		highlightActiveLineGutter(),
+
 		highlightSelectionMatches(),
 		bracketMatching(),
 		syntaxHighlighting(artisanHighlightStyle),

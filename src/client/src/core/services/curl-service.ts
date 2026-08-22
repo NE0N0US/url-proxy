@@ -37,7 +37,14 @@ export class CurlService {
 				if (!req.headers.rows.some(({disable, key}) =>
 					!disable && key.toLowerCase() === 'content-type'
 				))
-					args.push(CurlParam.HEADER + ' ' + shellQuote('Content-Type: text/plain'))
+					args.push(CurlParam.HEADER + ' ' + shellQuote(`Content-Type: ${
+						{
+							javascript: 'text/javascript',
+							json: 'application/json',
+							html: 'text/html',
+							xml: 'application/xml',
+						}[req.body.type === ReqBodyType.TEXT ? req.body.textLang ?? '' : ''] ?? 'text/plain'
+					}`))
 				break
 			case ReqBodyType.FORM_URLENCODED:
 			case ReqBodyType.FORM_MULTIPART:

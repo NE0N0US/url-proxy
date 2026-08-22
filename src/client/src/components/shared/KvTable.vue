@@ -291,14 +291,12 @@ const
 	watcherDeepModel = watch(rows$, (value, oldValue) => {
 		if (value === oldValue)
 			rows$.value = [...rows$.value]
+		updateText()
 	}, {deep: true}),
 
 	watcherTextMode = watch(textMode$, (value, oldValue) => {
-		if (value && value !== oldValue) {
-			text$.value = rows$.value.map(({disable, key, value}) =>
-				`${disable ? '//' : ''}${key || '<name>'}${value ? '\n' : ''}${value}`
-			).join('\n\n')
-		}
+		if (value !== oldValue)
+			updateText()
 	}, {immediate: true}),
 
 	ghostRow = {
@@ -338,6 +336,13 @@ const
 		},
 		set: value => rows$.value = rows$.value.map(row => ({...row, disable: !value})),
 	})
+
+function updateText() {
+	if (textMode$.value)
+		text$.value = rows$.value.map(({disable, key, value}) =>
+			`${disable ? '//' : ''}${key || '<name>'}${value ? '\n' : ''}${value}`
+		).join('\n\n')
+}
 
 function saveText(cancel = false) {
 	if (!cancel)

@@ -77,8 +77,7 @@
 		.cm-gutters {
 			border: none;
 			background-color: var(--color-background);
-			color: var(--color-text);
-			opacity: var(--opacity-disabled);
+			color: var(--color-disabled);
 			user-select: none;
 
 			.q-icon {
@@ -104,7 +103,11 @@
 		}
 
 		.cm-activeLineGutter,
-		.cm-activeLineGutter *,
+		.cm-activeLineGutter * {
+			background-color: var(--color-disabled) !important;
+			color: var(--color-background) !important;
+		}
+
 		.cm-matchingBracket,
 		.cm-matchingBracket *,
 		.cm-nonmatchingBracket,

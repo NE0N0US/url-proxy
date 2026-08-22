@@ -50,30 +50,30 @@
 											<menu-item
 												icon="mdi-content-duplicate"
 												label="Duplicate"
-												@click.passive="duplicate()"
+												@click="duplicate()"
 											/>
 											<q-separator spaced/>
 											<menu-item
 												icon="mdi-close-box-multiple-outline"
 												label="Close All Requests"
-												@click.passive="closeAll()"
+												@click="closeAll()"
 											/>
 											<menu-item
 												icon="mdi-close-box-outline"
 												label="Close Other Requests"
 												:disable="reqs$.length <= 1"
-												@click.passive="closeAll(true)"
+												@click="closeAll(true)"
 											/>
 											<q-separator spaced/>
 											<menu-item
 												icon="mdi-database-import-outline"
 												label="Import Workspaces…"
-												@click.passive="importWorkspaces()"
+												@click="importWorkspaces()"
 											/>
 											<menu-item
 												icon="mdi-database-export-outline"
 												label="Export Workspace…"
-												@click.passive="exportWorkspace()"
+												@click="exportWorkspace()"
 											/>
 										</q-list>
 									</q-menu>
@@ -87,7 +87,7 @@
 					v-for="req of reqs$" :key="req.id"
 					class="artisan-mono" translate="no"
 					:label="label(req) || 'New Request'"
-					@click.passive="open(req)"
+					@click="open(req)"
 				>
 					<q-icon v-if="req === req$" name="mdi-check" color="text"/>
 					<q-spinner-dots v-else-if="req.fetching" size="24px" color="text"/>

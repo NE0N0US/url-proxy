@@ -191,9 +191,9 @@
 				<q-tab
 					icon="mdi-table"
 					label="Headers"
-					:alert="!!(options$.curlProxy.headersAll.headers!.textValue
+					:alert="!!(options$.curlProxy.headersAll.headers!.textMode
 						|| options$.curlProxy.headersAll.headers!.rows.length)"
-					:alert-icon="options$.curlProxy.headersAll.headers!.textValue
+					:alert-icon="options$.curlProxy.headersAll.headers!.textMode
 						? 'mdi-content-save-edit-outline' : undefined"
 					name="headers"
 					:ripple="ripple$"
@@ -201,9 +201,9 @@
 				<q-tab
 					icon="mdi-table-minus"
 					label="Delete Headers"
-					:alert="!!(options$.curlProxy.headersAll.delHeaders!.textValue
+					:alert="!!(options$.curlProxy.headersAll.delHeaders!.textMode
 						|| options$.curlProxy.headersAll.delHeaders!.rows.length)"
-					:alert-icon="options$.curlProxy.headersAll.delHeaders!.textValue
+					:alert-icon="options$.curlProxy.headersAll.delHeaders!.textMode
 						? 'mdi-content-save-edit-outline' : undefined"
 					name="delHeaders"
 					:ripple="ripple$"
@@ -211,9 +211,9 @@
 				<q-tab
 					icon="mdi-table"
 					label="Response Headers"
-					:alert="!!(options$.curlProxy.headersAll.resHeaders!.textValue
+					:alert="!!(options$.curlProxy.headersAll.resHeaders!.textMode
 						|| options$.curlProxy.headersAll.resHeaders!.rows.length)"
-					:alert-icon="options$.curlProxy.headersAll.resHeaders!.textValue
+					:alert-icon="options$.curlProxy.headersAll.resHeaders!.textMode
 						? 'mdi-content-save-edit-outline' : undefined"
 					name="resHeaders"
 					:ripple="ripple$"
@@ -221,9 +221,9 @@
 				<q-tab
 					icon="mdi-table-minus"
 					label="Delete Response Headers"
-					:alert="!!(options$.curlProxy.headersAll.delResHeaders!.textValue
+					:alert="!!(options$.curlProxy.headersAll.delResHeaders!.textMode
 						|| options$.curlProxy.headersAll.delResHeaders!.rows.length)"
-					:alert-icon="options$.curlProxy.headersAll.delResHeaders!.textValue
+					:alert-icon="options$.curlProxy.headersAll.delResHeaders!.textMode
 						? 'mdi-content-save-edit-outline' : undefined"
 					name="delResHeaders"
 					:ripple="ripple$"
@@ -231,10 +231,8 @@
 				<q-tab
 					icon="mdi-text-box-outline"
 					label="Body"
-					:alert="!!(options$.curlProxy.body.formTextValue
-						|| options$.curlProxy.body.value
-						&& (options$.curlProxy.body.value as any)?.length !== 0)"
-					:alert-icon="options$.curlProxy.body.formTextValue
+					:alert="options$.curlProxy.body.type !== ReqBodyType.NONE"
+					:alert-icon="options$.curlProxy.body.formTextMode
 						? 'mdi-content-save-edit-outline' : undefined"
 					name="body"
 					:ripple="ripple$"
@@ -355,6 +353,7 @@ import {
 	MenuItem,
 	ReqBodyForm,
 	KvTable,
+	ReqBodyType,
 	ReqOptionsFormToggle,
 	type ReqOptions,
 	ResBodyForm,

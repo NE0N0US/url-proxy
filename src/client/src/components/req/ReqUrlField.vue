@@ -2,7 +2,10 @@
 <div class="artisan-req-url-field">
 	<q-input
 		class="fit"
-		:class="{'cursor-not-allowed': fetching || disable, 'shadow-text-always': expanded}"
+		:class="{
+			'cursor-not-allowed': fetching || disable,
+			'shadow-text-always': expanded,
+		}"
 		spellcheck="false" autocomplete="off"
 		inputmode="url" enterkeyhint="send"
 		:inert="fetching || disable"

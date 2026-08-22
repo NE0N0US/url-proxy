@@ -11,14 +11,14 @@
 	</div>
 	<codemirror
 		v-model="value$"
-		:disabled="disabled"
+		:disabled="disable"
 		:tab-size="tabSize ?? 4"
 		:placeholder="placeholder
 			?? ('Enter ' + (LANG_PLACEHOLDER[lang$ ?? ''] ?? 'text'))"
 		:extensions="extensions$"
 	/>
 	<div
-		v-if="!disabled && <string>lang$ in langExtensions"
+		v-if="!disable && <string>lang$ in langExtensions"
 		class="q-pa-xs row no-wrap gap-xs"
 	>
 		<q-btn
@@ -41,6 +41,10 @@
 </template>
 
 <style scoped lang="scss">
+.artisan-code-editor:focus-visible {
+	outline: none;
+}
+
 .v-codemirror :deep(.cm-editor) {
 	flex-grow: 1;
 }
@@ -54,19 +58,20 @@
 import {computed} from 'vue'
 import {useQuasar} from 'quasar'
 import {Codemirror} from 'vue-codemirror'
+import {highlightActiveLineGutter} from '@codemirror/view'
 import {EditorView} from 'codemirror'
 import {javascript} from '@codemirror/lang-javascript'
 import {json} from '@codemirror/lang-json'
 import {html} from '@codemirror/lang-html'
 import {xml} from '@codemirror/lang-xml'
-import {CodeService} from '@'
+import {CodeService, hex} from '@'
 
 const
 	$q = useQuasar(),
 
 	$props = defineProps<{
 		noLangOptions?: boolean | undefined,
-		disabled?: boolean | undefined,
+		disable?: boolean | undefined,
 		tabSize?: number | undefined,
 		placeholder?: string | undefined,
 		noLineWrap?: boolean | undefined,
@@ -85,6 +90,7 @@ const
 		json: json(),
 		html: html(),
 		xml: xml(),
+		hex: hex(),
 	},
 
 	lang$ = defineModel<null | keyof typeof langExtensions>('lang', {default: null}),
@@ -93,6 +99,7 @@ const
 		const lang = lang$.value
 		return [
 			...(lang !== null && lang in langExtensions) ? [langExtensions[lang]] : [],
+			...$props.disable ? [] : [highlightActiveLineGutter()],
 			...$props.noLineWrap ? [] : [EditorView.lineWrapping],
 		]
 	}),

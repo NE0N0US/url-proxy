@@ -3,7 +3,7 @@
 	<menu-item
 		v-for="{icon, label, caption, colors} of scheme === 'light' ? PRESETS_LIGHT : PRESETS_DARK" :key="label"
 		:icon="icon" :label="label" :caption="caption"
-		@click.passive="preset$ = colors"
+		@click="preset$ = colors"
 	>
 		<q-icon v-if="deepEqual(colors, preset$)" name="mdi-check" color="text"/>
 	</menu-item>

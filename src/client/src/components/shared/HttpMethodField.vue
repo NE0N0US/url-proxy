@@ -39,7 +39,7 @@
 							v-for="method of METHODS" :key="method.value"
 							:icon="method.icon"
 							:label="method.value"
-							@click.passive="method$ = method.value"
+							@click="method$ = method.value"
 						>
 							<q-icon v-if="methodLast$ === method.value" name="mdi-check" color="text"/>
 						</menu-item>

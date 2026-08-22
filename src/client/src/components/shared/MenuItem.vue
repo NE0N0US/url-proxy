@@ -6,6 +6,7 @@
 	:active="active"
 	clickable
 	v-ripple="disable ? false : ripple$"
+	@click.passive="disable ? $event.stopPropagation() : $emit('click')"
 >
 	<q-item-section v-if="icon || $slots.avatar" avatar>
 		<q-icon v-if="!$slots.avatar" :name="icon"/>
@@ -38,5 +39,9 @@ const
 		disable?: boolean | undefined,
 		active?: boolean | undefined,
 		useLabel?: boolean | undefined,
+	}>(),
+
+	$emit = defineEmits<{
+		click: [],
 	}>()
 </script>
