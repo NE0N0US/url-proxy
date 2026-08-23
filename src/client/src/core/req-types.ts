@@ -28,6 +28,8 @@ export enum ResBodyType {
 	JAVASCRIPT = 'javascript',
 }
 
+// #region - req options
+
 function getReqKv() {
 	return {
 		textMode: false,
@@ -108,7 +110,11 @@ export class ReqOptions {
 	}
 }
 
-async function stringifyBody(type: ReqBodyType, body: ReqBody) {
+// #endregion
+
+// #region - req
+
+async function stringifyReqBody(type: ReqBodyType, body: ReqBody) {
 	switch (type) {
 		case ReqBodyType.TEXT:
 			return body as string
@@ -137,7 +143,7 @@ async function stringifyBody(type: ReqBodyType, body: ReqBody) {
 	}
 }
 
-async function getFullUrl(req: Req) {
+async function getFullReqUrl(req: Req) {
 	if (req.urlValid) {
 		const
 			url = AppService.resolveUrl(req.url),
@@ -216,7 +222,7 @@ async function getFullUrl(req: Req) {
 				])
 		})
 		// body
-		const bodyString = await stringifyBody(bodyType, body)
+		const bodyString = await stringifyReqBody(bodyType, body)
 		if (bodyString !== undefined)
 			params.push([SearchParam.BODY, bodyString])
 		return server.value + '?' + params
@@ -227,7 +233,7 @@ async function getFullUrl(req: Req) {
 		return null
 }
 
-function getRequestBody(type: ReqBodyType, body: ReqBody) {
+function toRequestBody(type: ReqBodyType, body: ReqBody) {
 	switch (type) {
 		case ReqBodyType.TEXT:
 		case ReqBodyType.FILE:
@@ -252,13 +258,13 @@ function getRequestBody(type: ReqBodyType, body: ReqBody) {
 	}
 }
 
-async function getRequest(req: Req) {
+async function toRequest(req: Req) {
 	if (!req.urlValid)
 		return null
 	const aborter = new AbortController()
 	return {
 		request: new Request((await req.urlFull)!, {
-			body: getRequestBody(req.body.type, req.body.value),
+			body: toRequestBody(req.body.type, req.body.value),
 			cache: 'no-store',
 			credentials: req.options.includeCredentials ? 'include' : 'omit',
 			headers: new Headers(req.headers.rows
@@ -276,14 +282,24 @@ async function getRequest(req: Req) {
 	}
 }
 
-function setFetching(req: Req, fetching: boolean) {
+function setFetching(req: Req, fetching: boolean, recursive = false) {
 	if (req.fetching !== fetching) {
+		if (recursive) {
+			req.fetchStats ??= []
+			req.fetchStats.push(req.result!.error ? false : {
+				ok: req.result!.res!.ok,
+				resMs: req.result!.resMs!,
+				blobMs: req.result!.blobMs!,
+			})
+		}
+		else if (fetching)
+			req.fetchStats = null
 		switch (req._state) {
 			case 'idle':
 				req._state = 'prepare'
 				const aborter = new AbortController()
 				req._abort = aborter.abort.bind(aborter)
-				getRequest(req)
+				toRequest(req)
 					.then(request => {
 						if (!aborter.signal.aborted) {
 							if (!request)
@@ -291,27 +307,41 @@ function setFetching(req: Req, fetching: boolean) {
 							else {
 								req._state = 'fetch'
 								req._abort = request.abort
-								const timeFetch = performance.now()
+								const fetchTime = performance.now()
 								fetch(request.request)
 									.then(res => {
 										const
-											timeRes = performance.now(),
-											resMs = timeRes - timeFetch,
-											blobMs = req.result?.blobMs === undefined ? undefined
-												: req.result.blobMs - (resMs - req.result.resMs!)
+											resTime = performance.now(),
+											resMs = resTime - fetchTime
 										req.result ??= {}
 										delete req.result.error
-										Object.assign(req.result, {res, resMs, blob: req.result.blob, blobMs})
-										res.blob()
+										Object.assign(req.result, {
+											res,
+											resMs,
+											resTime: performance.timeOrigin + resTime,
+											blobSize: 0,
+											blob: req.result.blob,
+											blobMs: req.result?.blobMs === undefined ? undefined
+												: req.result.blobMs - (resMs - req.result.resMs!),
+										})
+										new Response(res.body?.pipeThrough(
+											new TransformStream({
+												transform(chunk, controller) {
+													if (!request.request.signal.aborted)
+														req.result!.blobSize! += chunk.byteLength
+													controller.enqueue(chunk)
+												},
+											})
+										), res).blob()
 											.then(blob => {
 												if (!request.request.signal.aborted) {
 													req._state = 'idle'
 													Object.assign(req.result!, {
 														blob,
-														blobMs: performance.now() - timeRes,
+														blobMs: performance.now() - resTime,
 													})
 													if (req.fetchRepeat)
-														setFetching(req, fetching)
+														setFetching(req, fetching, true)
 												}
 											})
 											.catch(error => {
@@ -319,7 +349,7 @@ function setFetching(req: Req, fetching: boolean) {
 													req._state = 'idle'
 													Object.assign(req.result!, {error})
 													if (req.fetchRepeat)
-														setFetching(req, fetching)
+														setFetching(req, fetching, true)
 												}
 											})
 									})
@@ -328,7 +358,7 @@ function setFetching(req: Req, fetching: boolean) {
 											req._state = 'idle'
 											req.result = {error}
 											if (req.fetchRepeat)
-												setFetching(req, fetching)
+												setFetching(req, fetching, true)
 										}
 									})
 							}
@@ -339,7 +369,7 @@ function setFetching(req: Req, fetching: boolean) {
 							req._state = 'idle'
 							req.result = {error}
 							if (req.fetchRepeat)
-								setFetching(req, fetching)
+								setFetching(req, fetching, true)
 						}
 					})
 				break
@@ -361,7 +391,7 @@ export class Req {
 		return !!this.url && AppService.isValidUrl(AppService.resolveUrl(this.url))
 	}
 	get urlFull() {
-		return getFullUrl(this)
+		return getFullReqUrl(this)
 	}
 	tab = 'params'
 	params = getReqKv()
@@ -380,9 +410,16 @@ export class Req {
 		setFetching(this, fetching)
 	}
 	fetchRepeat = false
+	fetchStats: null | Array<{
+		ok: boolean,
+		resMs: number,
+		blobMs: number,
+	} | false> = null
 	result: null | Partial<{
 		res: Response,
 		resMs: number,
+		resTime: number,
+		blobSize: number,
 		blob: Blob,
 		blobMs: number,
 		error: Error,
@@ -416,3 +453,5 @@ export class Req {
 		return this
 	}
 }
+
+// #endregion

@@ -1,5 +1,5 @@
 <template>
-<q-layout class="bg-background text-text" :inert="loading$" view="lHr lpR lFr">
+<q-layout class="bg-background text-text" view="lHr lpR lFr">
 	<sidenav :breakpoint="SIDENAV_BP" v-model="drawer$"/>
 	<q-page-container>
 		<main
@@ -15,86 +15,7 @@
 							@click.passive="collapse$ = collapse$ === 'start' ? null : 'start'"
 						/>
 						<q-toolbar-title>Request</q-toolbar-title>
-						<div class="row no-wrap gap-sm">
-							<q-btn icon="mdi-dots-vertical" flat round :ripple="ripple$">
-								<q-menu
-									auto-close
-									anchor="bottom right" self="top right" :offset="[96, 0]"
-									max-width="calc(100dvw - 24px)" max-height="calc(100dvh - 48px)"
-									transition-show="none" transition-hide="none"
-								>
-									<q-list class="non-selectable" padding>
-										<menu-item
-											icon="mdi-fullscreen"
-											label="Expand URL Editor"
-											caption="Open URL in expanded editor"
-											:disable="req$.fetching || req$.params.textMode"
-											@click="expandUrlEditor()"
-										/>
-										<menu-item
-											icon="mdi-link-variant"
-											label="Copy URL"
-											caption="Copy encoded request URL to clipboard"
-											:disable="!req$.urlValid"
-											@click="copyUrl()"
-										/>
-										<menu-item
-											icon="mdi-console-line"
-											label="Copy as cURL"
-											caption="Copy cURL command to clipboard"
-											:disable="!req$.urlValid"
-											@click="copyCurl()"
-										/>
-										<menu-item
-											icon="mdi-repeat"
-											label="Send Repeatedly"
-											caption="Repeat request after each response"
-											:disable="!(req$.urlValid && !req$.fetching && !req$.params.textMode)"
-											@click="send('repeat')"
-										/>
-										<q-separator spaced/>
-										<menu-item
-											icon="mdi-cookie-outline"
-											label="Cookies"
-											caption="Manage this page's cookies"
-											disable
-											@click="openCookies()"
-										/>
-										<menu-item
-											icon="mdi-swap-horizontal"
-											label="Encode and Decode"
-											caption="QR, Punycode, percent-encoding, Base64"
-											disable
-											@click="openEncodeAndDecode()"
-										/>
-										<menu-item
-											icon="mdi-file-multiple-outline"
-											label="Examples"
-											caption="Browse request examples"
-											@click="openExamples()"
-										/>
-										<menu-item
-											icon="mdi-information-outline"
-											label="About"
-											caption="About URL Artisan"
-											disable
-											@click="openAbout()"
-										/>
-									</q-list>
-								</q-menu>
-							</q-btn>
-							<q-btn icon="mdi-palette-outline" flat round :ripple="ripple$">
-								<q-menu
-									anchor="bottom right" self="top right" :offset="[48, 0]"
-									max-width="calc(100dvw - 24px)" max-height="calc(100dvh - 48px)"
-									transition-show="none" transition-hide="none"
-								>
-									<app-color-settings/>
-								</q-menu>
-								<q-tooltip :delay="300" transition-duration="0">
-									Theme
-								</q-tooltip>
-							</q-btn>
+						<req-toolbar-actions @send="send($event)">
 							<q-btn
 								v-if="$q.screen.width < SIDENAV_BP"
 								icon="mdi-tab"
@@ -105,129 +26,11 @@
 									Tabs
 								</q-tooltip>
 							</q-btn>
-						</div>
+						</req-toolbar-actions>
 					</q-toolbar>
 				</template>
 				<template #content-start>
-					<div class="full-width grow column no-wrap overflow-hidden">
-						<div class="url-field-pair row no-wrap" :class="{'cursor-not-allowed': req$.fetching}">
-							<http-method-field
-								class="no-shrink"
-								ref="method-input"
-								:disable="req$.fetching || req$.params.textMode"
-								:offset-x="4"
-								v-model="req$.method"
-								@blur="req$.method = 'GET'"
-								@enter="urlInput$?.focus()"
-							/>
-							<q-separator vertical/>
-							<req-url-field
-								class="grow"
-								ref="url-input"
-								:valid="req$.urlValid"
-								:fetching="req$.fetching"
-								:disable="req$.params.textMode"
-								v-model="req$.url"
-								@paste="pasteCurl($event)"
-								@start="send()" @stop="req$.fetching = false"
-							/>
-						</div>
-						<q-separator/>
-						<div class="grow column no-wrap overflow-auto">
-							<div class="grow column no-wrap">
-								<q-tabs
-									breakpoint="0"
-									mobile-arrows
-									:align="$q.screen.width >= 600 ? 'left' : 'justify'"
-									narrow-indicator inline-label no-caps
-									v-model="req$.tab"
-								>
-									<q-tab
-										icon="mdi-magnify"
-										label="Params"
-										:alert="!!(req$.params.textMode || req$.params.rows.length)"
-										:alert-icon="req$.params.textMode ? 'mdi-content-save-edit-outline' : undefined"
-										name="params"
-										:ripple="ripple$"
-									/>
-									<q-tab
-										icon="mdi-table"
-										label="Headers"
-										:alert="!!(req$.headers.textMode || req$.headers.rows.length)"
-										:alert-icon="req$.headers.textMode ? 'mdi-content-save-edit-outline' : undefined"
-										name="headers"
-										:ripple="ripple$"
-									/>
-									<q-tab
-										icon="mdi-text-box-outline"
-										label="Body"
-										:alert="req$.body.type !== ReqBodyType.NONE"
-										:alert-icon="req$.body.formTextMode ? 'mdi-content-save-edit-outline' : undefined"
-										name="body"
-										:ripple="ripple$"
-									/>
-									<q-tab
-										icon="mdi-tune-variant"
-										label="Options"
-										:alert="!!(req$.options.includeCredentials || req$.options.followRedirects ||
-											req$.options.integrityHashes.value && !req$.options.integrityHashes.disable ||
-											req$.options.curlProxy.server.value && !req$.options.curlProxy.server.disable)"
-										name="options"
-										:ripple="ripple$"
-									/>
-								</q-tabs>
-								<q-separator/>
-								<div class="grow column no-wrap" :class="{'cursor-not-allowed': req$.fetching}">
-									<q-tab-panels
-										class="grow bg-background text-text"
-										:inert="req$.fetching"
-										v-model="req$.tab"
-									>
-										<q-tab-panel class="overflow-hidden q-pa-none" name="params">
-											<kv-table
-												class="fit"
-												v-model:text-mode="req$.params.textMode"
-												v-model:text-value="req$.params.textValue"
-												v-model="req$.params.rows"
-												v-model:pagination="req$.params.pagination"
-											/>
-										</q-tab-panel>
-										<q-tab-panel class="overflow-hidden q-pa-none" name="headers">
-											<kv-table
-												class="fit"
-												v-model:text-mode="req$.headers.textMode"
-												v-model:text-value="req$.headers.textValue"
-												v-model="req$.headers.rows"
-												v-model:pagination="req$.headers.pagination"
-											/>
-										</q-tab-panel>
-										<q-tab-panel class="overflow-hidden q-pa-none" name="body">
-											<req-body-form
-												class="fit"
-												v-model:type="req$.body.type"
-												v-model:form-text-mode="req$.body.formTextMode"
-												v-model:form-text-value="req$.body.formTextValue"
-												v-model:form-pagination="req$.body.formPagination"
-												v-model:file-accept="req$.body.fileAccept"
-												v-model:text-lang="req$.body.textLang"
-												v-model="req$.body.value"
-											/>
-										</q-tab-panel>
-										<q-tab-panel class="overflow-hidden q-pa-none" name="options">
-											<req-options-form
-												class="fit"
-												:disable-extract="disableExtract$"
-												:table-height="reqTabHeight$"
-												v-model="req$.options"
-												@extract-curl-proxy="extractCurlProxy()"
-											/>
-										</q-tab-panel>
-									</q-tab-panels>
-								</div>
-							</div>
-							<q-resize-observer debounce="0" @resize="reqTabHeight$ = $event.height"/>
-						</div>
-					</div>
+					<req-panel @send="send($event)"/>
 				</template>
 				<template #header-end>
 					<q-toolbar class="non-selectable">
@@ -237,183 +40,16 @@
 							@click.passive="collapse$ = collapse$ === 'end' ? null : 'end'"
 						/>
 						<q-toolbar-title>Response</q-toolbar-title>
-						<div class="row no-wrap gap-sm">
-							<q-btn
-								icon="mdi-download"
-								:disable="collapse$ === 'end' || !req$.result?.blob?.size"
-								flat round :ripple="ripple$"
-								@click.passive="downloadRes()"
-							>
-								<q-tooltip
-									v-if="!(collapse$ === 'end' || !req$.result?.blob?.size)"
-									:delay="300" transition-duration="0"
-								>
-									Download
-								</q-tooltip>
-							</q-btn>
-							<q-btn
-								icon="mdi-trash-can-outline"
-								:disable="collapse$ === 'end' || !req$.result"
-								flat round :ripple="ripple$"
-								@click.passive="req$.fetching = false; req$.result = null"
-							>
-								<q-tooltip
-									v-if="!(collapse$ === 'end' || !req$.result)"
-									:delay="300" transition-duration="0"
-								>
-									Clear
-								</q-tooltip>
-							</q-btn>
-							<q-icon
-								class="q-pa-sm"
-								:name="online$ ? 'mdi-lan-connect' : 'mdi-lan-disconnect'"
-								size="24px"
-							>
-								<q-tooltip :delay="300" transition-duration="0">
-									You are currently {{online$ ? 'online' : 'offline'}}
-								</q-tooltip>
-							</q-icon>
-						</div>
+						<res-toolbar-actions/>
 					</q-toolbar>
 				</template>
 				<template #content-end>
-					<div v-if="req$.result && 'error' in req$.result" class="res-message">
-						Error getting response. This may be due to an invalid URL, credentials in the URL, browser restrictions, or a network error. Try using <a href="/">cURL Proxy</a> to bypass browser restrictions, or check your network connection.
-					</div>
-					<div v-else-if="!req$.result" class="res-message">
-						No response received yet. Send a request to see the response here.
-					</div>
-					<div v-else class="full-width grow column no-wrap overflow-hidden">
-						<div class="row no-wrap gap-sm">
-							<q-tabs
-								align="left" narrow-indicator inline-label no-caps
-								v-model="req$.resultTab"
-							>
-								<q-tab
-									icon="mdi-text-box-outline"
-									label="Body"
-									name="body"
-									:ripple="ripple$"
-								/>
-								<q-tab
-									icon="mdi-table"
-									label="Headers"
-									name="headers"
-									:ripple="ripple$"
-								/>
-							</q-tabs>
-							<q-space/>
-							<div class="row no-wrap items-center gap-sm overflow-auto">
-								<template v-if="!!req$.result?.res">
-									<q-chip :label="req$.result!.res!.status" :ripple="false">
-										<q-tooltip
-											v-if="req$.result!.res!.statusText"
-											:delay="300" transition-duration="0"
-										>
-											{{req$.result!.res!.statusText}}
-										</q-tooltip>
-									</q-chip>
-									<q-chip v-if="!req$.result!.blob" :ripple="false">
-										<q-spinner-dots size="21px"/>
-									</q-chip>
-									<template v-else>
-										<q-chip
-											:label="formatResTime(req$.result!.resMs! + req$.result!.blobMs!)"
-											:ripple="false"
-										>
-											<q-tooltip :delay="300" transition-duration="0">
-												{{
-													formatResTime(req$.result!.resMs!)
-												}} (TTFB) + {{
-													formatResTime(req$.result!.blobMs!)
-												}}
-											</q-tooltip>
-										</q-chip>
-										<q-chip
-											v-if="req$.result!.blob.size"
-											:label="AppService.formatDataSize(req$.result!.blob.size)"
-											:ripple="false"
-										>
-											<q-tooltip
-												v-if="req$.result!.blob.size >= 1024"
-												:delay="300" transition-duration="0"
-											>
-												{{AppService.formatNumber(req$.result!.blob.size)}}&nbsp;B
-											</q-tooltip>
-										</q-chip>
-										<q-chip
-											v-if="req$.result!.blob.size && req$.result!.blob.type"
-											:label="req$.result!.blob.type"
-											:ripple="false"
-										/>
-									</template>
-								</template>
-								<q-chip v-else-if="req$.fetching" :ripple="false">
-									<q-spinner-dots size="21px"/>
-								</q-chip>
-							</div>
-							<div/>
-						</div>
-						<q-separator/>
-						<div class="grow overflow-auto">
-							<q-tab-panels class="fit bg-background text-text" v-model="req$.resultTab">
-								<q-tab-panel class="q-pa-none overflow-hidden" name="body">
-									<div v-if="req$.result?.blob?.size" class="fit column no-wrap">
-										<q-tabs
-											align="left" narrow-indicator inline-label no-caps
-											v-model="req$.resultBodyTab"
-										>
-											<q-tab
-												v-for="{label, name} of RES_BODY_OPTIONS" :key="name"
-												:label="label" :name="name"
-												:ripple="ripple$"
-											/>
-										</q-tabs>
-										<q-separator/>
-										<div v-if="req$.resultBodyTab === 'preview'" class="grow overflow-hidden">
-											<object
-												class="fit overflow-auto"
-												:key="req$.result.blob.type"
-												:data="resBlobUrl$"
-												:type="req$.result.blob.type"
-												:width="resBodySize$.width" :height="resBodySize$.height"
-											/>
-											<q-resize-observer @resize="resBodySize$ = $event"/>
-										</div>
-										<code-editor v-else
-											class="overflow-auto"
-											no-lang-options
-											disable
-											placeholder="Loading…"
-											:no-line-wrap="req$.resultBodyTab === 'hex'"
-											:lang="<any>req$.resultBodyTab"
-											:model-value="req$.resultBodyTab === 'hex' ? resHex$ : resText$"
-										/>
-									</div>
-									<div v-else-if="req$.result.blob" class="res-message">
-										No response body.
-									</div>
-								</q-tab-panel>
-								<q-tab-panel class="q-pa-none overflow-hidden" name="headers">
-									<kv-table
-										class="fit overflow-auto"
-										readonly
-										hide-columns="disable"
-										v-model:text-mode="req$.resultHeadersTextMode"
-										:text-value="''"
-										v-model="resHeaders$"
-										v-model:pagination="req$.resultHeadersPagination"
-									/>
-								</q-tab-panel>
-							</q-tab-panels>
-						</div>
-					</div>
+					<res-panel/>
 				</template>
 			</splitter-accordion>
 		</main>
 	</q-page-container>
 </q-layout>
-<div class="fullscreen" v-if="loading$"></div>
 </template>
 
 <style scoped lang="scss">
@@ -424,159 +60,39 @@
 		display: none;
 	}
 }
-
-.q-chip {
-	margin: 0;
-	min-width: min-content;
-	border: 1px solid var(--color-border);
-	background-color: var(--color-background);
-	color: var(--color-text);
-	user-select: none;
-}
-
-.res-message {
-	padding: 8px 12px;
-
-	a {
-		color: var(--q-primary) !important;
-	}
-}
-
-object {
-	object-fit: scale-down;
-}
 </style>
 
 <script setup lang="ts">
-import {computed, onMounted, onUnmounted, ref, useTemplateRef, watch} from 'vue'
-import {copyToClipboard, date, exportFile, useQuasar} from 'quasar'
-const {formatDate} = date
-import {computedAsync, useEventListener, useMagicKeys, useTitle, whenever} from '@vueuse/core'
+import {onMounted, ref} from 'vue'
+import {useQuasar} from 'quasar'
+import {useEventListener, useTitle} from '@vueuse/core'
 import {toUnicode} from 'punycode'
 import {
 	AppService,
-	CodeEditor,
-	CodeService,
-	CurlService,
 	Sidenav,
 	SplitterAccordion,
-	MenuItem,
-	AppColorSettings,
-	HttpMethodField,
-	Req,
-	ReqUrlField,
-	KvTable,
-	ReqBodyForm,
 	ReqBodyType,
-	ReqOptionsForm,
-	ReqService,
-	ReqUrlDialog,
-	useOnline,
+	ReqPanel,
+	ReqToolbarActions,
+	ResPanel,
+	ResToolbarActions,
 	useReqStore,
 	useUiStore,
 } from '@'
 
 const
 	$q = useQuasar(),
-	online$ = useOnline(),
 	{req$, touched$} = useReqStore(),
 	{ripple$} = useUiStore(),
 
-	methodInput$ = useTemplateRef<typeof HttpMethodField>('method-input'),
-	urlInput$ = useTemplateRef<typeof ReqUrlField>('url-input'),
-	reqTabHeight$ = ref(0),
-
-	keys$ = useMagicKeys(),
-	watcherAltM = whenever(keys$.alt_m!, () => methodInput$.value!.focus()),
-	watcherAltU = whenever(keys$.alt_u!, () => urlInput$.value!.focus()),
-	watcherAltP = whenever(keys$.alt_p!, () => req$.value.tab = 'params'),
-	watcherAltH = whenever(keys$.alt_h!, () => req$.value.tab = 'headers'),
-	watcherAltB = whenever(keys$.alt_b!, () => req$.value.tab = 'body'),
-	watcherAltO = whenever(keys$.alt_o!, () => req$.value.tab = 'options'),
-
 	drawer$ = ref(false),
 	collapse$ = ref<null | 'start' | 'end'>(null),
-	loading$ = ref(false),
 
 	title$ = useTitle(() => 'URL Artisan' + (req$.value.urlValid ? `: ${
 		decodeURI(toUnicode(new URL(
 			AppService.resolveUrl(req$.value.url)
 		).hostname))
 	}` : '')),
-
-	disableExtract$ = computed(() =>
-		!req$.value.urlValid || !req$.value.params.rows
-			.some(({disable, key, value}) => !disable && key === 'url' && value)
-	),
-
-	resBodySize$ = ref({width: 0, height: 0}),
-
-	RES_BODY_OPTIONS = AppService.freeze([
-		{label: 'Preview', name: 'preview'},
-		{label: 'HEX', name: 'hex'},
-		{label: 'Plain Text', name: 'plaintext'},
-		{label: 'JSON', name: 'json'},
-		{label: 'XML', name: 'xml'},
-		{label: 'HTML', name: 'html'},
-		{label: 'JavaScript', name: 'javascript'},
-	]),
-
-	resBlobUrl$ = computed(() => {
-		const blob = req$.value.result?.blob
-		return blob ? URL.createObjectURL(blob) : undefined
-	}),
-
-	watcherResBlobUrl = watch(resBlobUrl$, (_, oldValue) => {
-		if (oldValue)
-			URL.revokeObjectURL(oldValue)
-	}),
-
-	resTextCache = new WeakMap<Blob, Record<string, string>>(),
-
-	resHex$ = computedAsync(
-		() => {
-			const
-				req = req$.value,
-				blob = req.result?.blob
-			return req.resultBodyTab === 'hex' && blob?.size ? resTextCached(
-				'hex',
-				() => resHex(blob).catch(error => {
-					console.error(error)
-					return 'Error displaying HEX'
-				})
-			) : ''
-		},
-		''
-	),
-
-	resTextRaw$ = computedAsync(
-		() => resTextCached(
-			'raw',
-			() => req$.value.result!.blob!.text().catch(error => {
-				console.error(error)
-				return error?.toString() as string
-			})
-		),
-		''
-	),
-
-	resText$ = computedAsync(
-		() => {
-			const
-				req = req$.value,
-				textRaw = resTextRaw$.value
-			return textRaw ? resTextCached(
-				req.resultBodyTab,
-				() => CodeService.prettify(textRaw, req.resultBodyTab).catch(() => textRaw)
-			) : ''
-		},
-		''
-	),
-
-	resHeaders$ = computed(() =>
-		[...req$.value.result?.res?.headers.entries() ?? []]
-			.map(([key, value]) => ({disable: false, key, value}))
-	),
 
 	listenerPreventUnload = useEventListener(window, 'beforeunload', event => {
 		if (touched$.value) {
@@ -589,78 +105,6 @@ const
 
 onMounted(() => setTimeout(() => touched$.value = false))
 
-onUnmounted(() => {
-	const resBlobUrl = resBlobUrl$.value
-	if (resBlobUrl)
-		URL.revokeObjectURL(resBlobUrl)
-})
-
-function expandUrlEditor() {
-	$q.dialog({component: ReqUrlDialog})
-}
-
-async function copyUrl() {
-	try {
-		const url = (await req$.value.urlFull)!
-		await copyToClipboard(url)
-	}
-	catch (error) {
-		console.error(error)
-		$q.notify('Error copying URL')
-	}
-}
-
-async function copyCurl() {
-	try {
-		const curl = await CurlService.toCurl(req$.value)
-		await copyToClipboard(curl)
-	}
-	catch (error) {
-		console.error(error)
-		$q.notify('Error copying cURL command')
-	}
-}
-
-function pasteCurl(event: ClipboardEvent) {
-	try {
-		const text = event.clipboardData?.getData('text')
-		if (text?.trim().match(/^curl(\s|\\)/)) {
-			req$.value = CurlService.fromCurl(text)
-			event.preventDefault()
-		}
-	}
-	catch (error) {
-		console.error(error)
-		$q.notify('Error pasting cURL command')
-	}
-}
-
-function openCookies() {
-	// https://developer.mozilla.org/en-US/docs/Web/API/Document/cookie#notes
-}
-function openEncodeAndDecode() {}
-
-function randomString(bytes: number) {
-	let result = ''
-	while (result.length < bytes)
-		result += new TextDecoder('ibm866')
-			.decode(crypto.getRandomValues(new Uint8Array(bytes)))
-			.replace(/\s/g, '')
-	return result.slice(0, bytes)
-}
-function openExamples() {
-	const req = req$.value
-	Object.assign(req, new Req().patchView(req), {id: req.id})
-	req.url = 'https://chatgpt.com/?temporary-chat=true'
-	req.headers.rows = Array(500).fill(null).map(() => ({
-		disable: Math.random() > 0.5,
-		key: randomString(80),
-		value: randomString(80),
-	}))
-}
-
-function openAbout() {}
-
 function send(command?: 'repeat') {
 	const
 		req = req$.value,
@@ -671,76 +115,19 @@ function send(command?: 'repeat') {
 	if (['GET', 'OPTIONS'].includes(method) && (hasBody || hasCurlProxyBody))
 		$q.notify(method + ' request cannot have a body')
 	else {
-		req.fetching = true
 		req.fetchRepeat = command === 'repeat'
+		req.fetching = true
 	}
-}
-
-function extractCurlProxy() {
-	try {
-		ReqService.extractCurlProxy(req$.value)
-	}
-	catch (error) {
-		console.error(error)
-		$q.notify('Error parsing cURL Proxy URL')
-	}
-}
-
-function downloadRes() {
-	const blob = req$.value.result?.blob
-	if (blob?.size)
-		exportFile(
-			`artisan-request-${formatDate(Date.now(), 'YYYY-MM-DDTHH-mm-ss')}`,
-			blob,
-			{mimeType: blob.type}
-		)
-}
-
-function formatResTime(ms: number) {
-	return ms < 1_000 ? (Math.ceil(ms) + '\xA0ms')
-		: (+(Math.ceil(ms) / 1_000)?.toFixed(3) + '\xA0s')
-}
-
-async function resHex(blob: Blob, bytesPerLine = 16) {
-	const
-		bytes = new Uint8Array(await blob.arrayBuffer()),
-		lines = []
-	for (let c = 0; c < bytes.length; c += bytesPerLine) {
-		const
-			address = c.toString(16).padStart(8, '0').toUpperCase(),
-			chunk = bytes.subarray(c, c + bytesPerLine),
-			hex = Array.from(chunk, b => b.toString(16).padStart(2, '0').toUpperCase())
-				.join(' ')
-				.padEnd(bytesPerLine * 3 - 1, ' '),
-			ascii = Array.from(chunk, b =>
-				b >= 0x20 && b <= 0x7e ? String.fromCharCode(b) : '.'
-			).join('')
-		lines.push([address, hex, ascii].join('  '))
-	}
-	return lines.join('\n')
-}
-
-async function resTextCached(cacheKey: string, compute: () => Promise<string>) {
-	const req = req$.value
-	if (!req.result?.blob || req.resultBodyTab === 'preview')
-		return ''
-	const cache = resTextCache.get(req.result.blob) ?? {}
-	resTextCache.set(req.result.blob, cache)
-	return cache[cacheKey] ??= await compute()
 }
 
 /* TODO:
-streamed body progress indication?
-min/avg/max values and success rate for same response
-refactor main-layout
+translate="no" in new components, e. g. res-*
 
 dialogs: cookies, encode/decode (https://vueuse.org/core/useWebWorkerFn/), code editor, examples, about (MDN - external help)
-UI deep linking? dialogs, tabs
+UI deep linking? dialogs, tabs, import curl?
 keyboard controls: alt-*, table pagination, code editor keymaps
 CSS: PX => REM?
 package.json keywords?, routes.ts, quasar.config.ts
-
-https://vueuse.org/core/useTimestamp/
 */
 
 </script>

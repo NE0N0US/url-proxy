@@ -92,8 +92,9 @@ export const useReqStore = createSharedComposable(() => {
 			close() {
 				const
 					reqs = reqs$.value,
-					index = reqs.indexOf(req$.value)
-				reqs.splice(index, 1)
+					index = reqs.indexOf(req$.value),
+					closed = reqs.splice(index, 1)
+				closed.forEach(req => req.fetching = false)
 				store.open(reqs[Math.min(index, reqs.length - 1)])
 			},
 
@@ -116,6 +117,7 @@ export const useReqStore = createSharedComposable(() => {
 
 			closeAll(keepOpen?: boolean) {
 				reqs$.value.splice(0, Infinity, ...keepOpen ? [req$.value] : [])
+					.forEach(req => req.fetching = false)
 				if (!keepOpen)
 					store.open()
 			},

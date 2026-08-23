@@ -149,13 +149,17 @@ async function importWorkspaces() {
 
 async function exportWorkspace() {
 	try {
-		exportFile(
+		const exported = exportFile(
 			`artisan-workspace-${formatDate(Date.now(), 'YYYY-MM-DDTHH-mm-ss')}.json`,
 			JSON.stringify(await Promise.all(
 				reqs$.value.map(ReqService.serialize)
 			), undefined, '\t'),
 			{mimeType: 'application/json'}
 		)
+		if (exported !== true) {
+			console.error(exported)
+			$q.notify('Error exporting requests')
+		}
 	}
 	catch (error) {
 		console.error(error)

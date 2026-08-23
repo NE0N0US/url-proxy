@@ -58,7 +58,7 @@
 			anchor="bottom left" self="top left" :offset="[13, 0]"
 			transition-show="none" transition-hide="none"
 		>
-			<div class="tooltip column no-wrap gap-sm" translate="no">
+			<div class="column no-wrap gap-sm" translate="no">
 				<span v-for="name of names$" :key="name">
 					{{name}}
 				</span>
@@ -75,10 +75,6 @@
 	.file-value-size {
 		opacity: var(--opacity-disabled);
 	}
-}
-
-.tooltip {
-	white-space: pre-wrap;
 }
 
 .q-file {

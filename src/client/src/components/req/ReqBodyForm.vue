@@ -56,9 +56,7 @@
 		<q-btn
 			:icon="type$ === ReqBodyType.FORM_URLENCODED ? 'mdi-file-multiple-outline' : 'mdi-file-remove-outline'"
 			flat round color="text" :ripple="ripple$"
-			@click.passive="type$ = resetValue(
-				type$ === ReqBodyType.FORM_URLENCODED ? ReqBodyType.FORM_MULTIPART : ReqBodyType.FORM_URLENCODED,
-			type$)"
+			@click.passive="toggleFormType()"
 		>
 			<q-tooltip :delay="300" transition-duration="0">
 				{{type$ === ReqBodyType.FORM_URLENCODED ? 'Add Files' : 'Remove Files'}}
@@ -155,5 +153,12 @@ function resetValue(type: ReqBodyType, oldType: ReqBodyType) {
 				break
 		}
 	return type
+}
+
+function toggleFormType() {
+	const type = type$.value
+	type$.value = resetValue(
+		type === ReqBodyType.FORM_URLENCODED ? ReqBodyType.FORM_MULTIPART : ReqBodyType.FORM_URLENCODED,
+	type)
 }
 </script>
