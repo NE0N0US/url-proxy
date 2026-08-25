@@ -1,5 +1,9 @@
 <template>
-<q-layout class="bg-background text-text" view="lHr lpR lFr">
+<q-layout
+	class="artisan-main-layout bg-background text-text"
+	:inert="!!dialogs$"
+	view="lHr lpR lFr"
+>
 	<sidenav :breakpoint="SIDENAV_BP" v-model="drawer$"/>
 	<q-page-container>
 		<main
@@ -65,13 +69,14 @@
 <script setup lang="ts">
 import {onMounted, ref} from 'vue'
 import {useRoute} from 'vue-router'
-import {useQuasar} from 'quasar'
 import {useEventListener, useMagicKeys, useTitle, whenever} from '@vueuse/core'
 import {toUnicode} from 'punycode'
 import {
 	AboutDialog,
 	AppService,
+	CookiesDialog,
 	CurlService,
+	ExamplesDialog,
 	ReqBodyType,
 	ReqPanel,
 	ReqToolbarActions,
@@ -85,9 +90,8 @@ import {
 
 const
 	$route = useRoute(),
-	$q = useQuasar(),
 	{req$, touched$} = useReqStore(),
-	{ripple$} = useUiStore(),
+	{dialog, dialogs$, notify, ripple$} = useUiStore(),
 
 	drawer$ = ref(false),
 	collapse$ = ref<null | 'start' | 'end'>(null),
@@ -125,12 +129,19 @@ onMounted(() => {
 		}
 		catch (error) {
 			console.error(error)
-			$q.notify('Error pasting cURL command')
+			notify('Error pasting cURL command')
 		}
 	if (open)
 		switch (open) {
+			case 'cookies':
+				dialog({component: CookiesDialog})
+				break
+			case 'examples':
+				dialog({component: ExamplesDialog})
+				break
 			case 'about':
-				$q.dialog({component: AboutDialog})
+				dialog({component: AboutDialog})
+				break
 		}
 	setTimeout(() => touched$.value = false)
 })
@@ -143,7 +154,7 @@ function send(command?: 'repeat') {
 		hasCurlProxyBody = hasCurlProxy && req.options.curlProxy.body.type !== ReqBodyType.NONE,
 		method = hasCurlProxy ? (req.options.curlProxy.method || req.method) : req.method
 	if (['GET', 'OPTIONS'].includes(method) && (hasBody || hasCurlProxyBody))
-		$q.notify(method + ' request cannot have a body')
+		notify(method + ' request cannot have a body')
 	else {
 		req.fetchRepeat = command === 'repeat'
 		req.fetching = true
@@ -151,12 +162,8 @@ function send(command?: 'repeat') {
 }
 
 /* TODO:
-$q.notify for copy and so on - with length because of https://vercel.com/docs/errors/url_too_long
-/api/curl-proxy-config
-dialogs:
-- https://vueuse.org/core/useWebWorkerFn/
-- open from URL
 1-res QJS runtime (w/console?)
+test big responses
 quasar.config.ts (PWA)
 package.json keywords?
 CSS: PX => REM?

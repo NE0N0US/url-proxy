@@ -13,7 +13,7 @@
 					label="Expand URL Editor"
 					caption="Open URL in expanded editor"
 					:disable="req$.fetching || req$.params.textMode"
-					@click="$q.dialog({component: ReqUrlDialog})"
+					@click="dialog({component: ReqUrlDialog})"
 				/>
 				<menu-item
 					icon="mdi-link-variant"
@@ -41,27 +41,19 @@
 					icon="mdi-cookie-outline"
 					label="Cookies"
 					caption="Manage this page's cookies"
-					disable
-					@click="openCookies()"
-				/>
-				<menu-item
-					icon="mdi-swap-horizontal"
-					label="Encode and Decode"
-					caption="QR, Punycode, percent-encoding, Base64"
-					disable
-					@click="openEncodeAndDecode()"
+					@click="dialog({component: CookiesDialog})"
 				/>
 				<menu-item
 					icon="mdi-file-multiple-outline"
 					label="Examples"
 					caption="Browse request examples"
-					@click="openExamples()"
+					@click="dialog({component: ExamplesDialog})"
 				/>
 				<menu-item
 					icon="mdi-information-outline"
 					label="About"
 					caption="About URL Artisan"
-					@click="$q.dialog({component: AboutDialog})"
+					@click="dialog({component: AboutDialog})"
 				/>
 			</q-list>
 		</q-menu>
@@ -83,11 +75,14 @@
 </template>
 
 <script setup lang="ts">
-import {copyToClipboard, useQuasar} from 'quasar'
+import {copyToClipboard} from 'quasar'
 import {
 	AboutDialog,
 	AppColorSettings,
+	AppService,
+	CookiesDialog,
 	CurlService,
+	ExamplesDialog,
 	MenuItem,
 	Req,
 	ReqUrlDialog,
@@ -96,9 +91,8 @@ import {
 } from '@'
 
 const
-	$q = useQuasar(),
 	{req$} = useReqStore(),
-	{ripple$} = useUiStore(),
+	{dialog, notify, ripple$} = useUiStore(),
 
 	$emit = defineEmits<{
 		'send': ['repeat' | undefined],
@@ -108,10 +102,16 @@ async function copyUrl() {
 	try {
 		const url = (await req$.value.urlFull)!
 		await copyToClipboard(url)
+		notify({
+			message: `URL copied • ${
+				AppService.formatNumber(url.length)
+			} characters`,
+			icon: 'mdi-link-variant',
+		})
 	}
 	catch (error) {
 		console.error(error)
-		$q.notify('Error copying URL')
+		notify('Error copying URL')
 	}
 }
 
@@ -119,34 +119,16 @@ async function copyCurl() {
 	try {
 		const curl = await CurlService.toCurl(req$.value)
 		await copyToClipboard(curl)
+		notify({
+			message: `cURL command copied • ${
+				AppService.formatNumber(curl.length)
+			} characters`,
+			icon: 'mdi-console-line',
+		})
 	}
 	catch (error) {
 		console.error(error)
-		$q.notify('Error copying cURL command')
+		notify('Error copying cURL command')
 	}
-}
-
-function openCookies() {
-	// https://developer.mozilla.org/en-US/docs/Web/API/Document/cookie#notes
-}
-function openEncodeAndDecode() {}
-
-function randomString(bytes: number) {
-	let result = ''
-	while (result.length < bytes)
-		result += new TextDecoder('ibm866')
-			.decode(crypto.getRandomValues(new Uint8Array(bytes)))
-			.replace(/\s/g, '')
-	return result.slice(0, bytes)
-}
-function openExamples() {
-	const req = req$.value
-	Object.assign(req, new Req().patchView(req), {id: req.id})
-	req.url = 'https://chatgpt.com/?temporary-chat=true'
-	req.headers.rows = Array(500).fill(null).map(() => ({
-		disable: Math.random() > 0.5,
-		key: randomString(80),
-		value: randomString(80),
-	}))
 }
 </script>

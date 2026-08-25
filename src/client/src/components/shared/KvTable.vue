@@ -117,7 +117,7 @@
 						</q-tooltip>
 					</q-btn>
 					<q-btn
-						v-if="!readonly"
+						v-if="!readonly && !(hideAdd && props.row === ghostRow)"
 						:icon="props.row !== ghostRow ? 'mdi-trash-can-outline' : 'mdi-plus'"
 						:disable="readonly || props.row === ghostRow && !!pagination$.filter?.query"
 						flat round color="text" :ripple="ripple$"
@@ -247,6 +247,7 @@ const
 	$props = defineProps<{
 		readonly?: boolean | undefined,
 		multipartForm?: boolean | undefined,
+		hideAdd?: boolean | undefined,
 		hideColumns?: string[] | string | undefined,
 		tableHeight?: number | undefined,
 	}>(),

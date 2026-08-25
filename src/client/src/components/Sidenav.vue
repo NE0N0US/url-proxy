@@ -100,15 +100,14 @@
 
 <script setup lang="ts">
 import {computed} from 'vue'
-import {date, exportFile, useQuasar} from 'quasar'
+import {date, exportFile} from 'quasar'
 const {formatDate} = date
 import {AppService, MenuItem, Req, ReqService, useReqStore, useUiStore} from '@'
 
 const
-	$q = useQuasar(),
 	{req$, reqs$, open, close, duplicate, closeAll} = useReqStore(),
 
-	{ripple$} = useUiStore(),
+	{notify, ripple$} = useUiStore(),
 
 	$props = defineProps<{
 		breakpoint?: number | undefined,
@@ -140,10 +139,14 @@ async function importWorkspaces() {
 					id: maxId + 1 + index,
 				}))
 			)
+			notify({
+				message: 'Workspaces imported',
+				icon: 'mdi-database-import-outline',
+			})
 		}
 		catch (error) {
 			console.error(error)
-			$q.notify('Error importing requests')
+			notify('Error importing workspaces')
 		}
 }
 
@@ -158,12 +161,17 @@ async function exportWorkspace() {
 		)
 		if (exported !== true) {
 			console.error(exported)
-			$q.notify('Error exporting requests')
+			notify('Error exporting workspace')
 		}
+		else
+			notify({
+				message: 'Workspace exported',
+				icon: 'mdi-database-export-outline',
+			})
 	}
 	catch (error) {
 		console.error(error)
-		$q.notify('Error exporting requests')
+		notify('Error exporting workspace')
 	}
 }
 </script>

@@ -4,6 +4,7 @@
 
 <script setup lang="ts">
 import {computed, onErrorCaptured, watch} from 'vue'
+import {useQuasar} from 'quasar'
 import {useEventListener, useFavicon} from '@vueuse/core'
 import {useAppPersistence, useCssVars, useUiStore} from '@'
 
@@ -27,9 +28,10 @@ const
 			event.preventDefault()
 	}),
 
-	persistance = useAppPersistence(),
+	persistence = useAppPersistence(),
+	{colorScheme$} = Object.assign(useUiStore(), {$q: useQuasar()}),
 
-	watcherColorScheme = watch(useUiStore().colorScheme$, (value, oldValue) =>
+	watcherColorScheme = watch(colorScheme$, (value, oldValue) =>
 		document.documentElement.classList.replace('artisan-' + oldValue, 'artisan-' + value)
 	),
 

@@ -39,28 +39,32 @@
 </template>
 
 <script setup lang="ts">
-import {date, exportFile, useQuasar} from 'quasar'
+import {date, exportFile} from 'quasar'
 const {formatDate} = date
 import {useOnline, useReqStore, useUiStore} from '@'
 
 const
-	$q = useQuasar(),
 	online$ = useOnline(),
 	{req$} = useReqStore(),
-	{ripple$} = useUiStore()
+	{notify, ripple$} = useUiStore()
 
 function download() {
 	const blob = req$.value.result?.blob
 	if (blob?.size) {
 		const exported = exportFile(
-			`artisan-request-${formatDate(Date.now(), 'YYYY-MM-DDTHH-mm-ss')}`,
+			`artisan-response-${formatDate(Date.now(), 'YYYY-MM-DDTHH-mm-ss')}`,
 			blob,
 			{mimeType: blob.type}
 		)
 		if (exported !== true) {
 			console.error(exported)
-			$q.notify('Error downloading response')
+			notify('Error downloading response')
 		}
+		else
+			notify({
+				message: 'Downloading response',
+				icon: 'mdi-download',
+			})
 	}
 }
 

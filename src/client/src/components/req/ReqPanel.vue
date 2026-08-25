@@ -123,7 +123,6 @@
 
 <script setup lang="ts">
 import {computed, ref, useTemplateRef} from 'vue'
-import {useQuasar} from 'quasar'
 import {useMagicKeys, whenever} from '@vueuse/core'
 import {
 	CurlService,
@@ -139,9 +138,8 @@ import {
 } from '@'
 
 const
-	$q = useQuasar(),
 	{req$} = useReqStore(),
-	{ripple$} = useUiStore(),
+	{notify, ripple$} = useUiStore(),
 
 	methodInput$ = useTemplateRef<typeof HttpMethodField>('method-input'),
 	urlInput$ = useTemplateRef<typeof ReqUrlField>('url-input'),
@@ -175,7 +173,7 @@ function pasteCurl(event: ClipboardEvent) {
 	}
 	catch (error) {
 		console.error(error)
-		$q.notify('Error pasting cURL command')
+		notify('Error pasting cURL command')
 	}
 }
 
@@ -185,7 +183,7 @@ function extractCurlProxy() {
 	}
 	catch (error) {
 		console.error(error)
-		$q.notify('Error parsing cURL Proxy URL')
+		notify('Error parsing cURL Proxy URL')
 	}
 }
 </script>

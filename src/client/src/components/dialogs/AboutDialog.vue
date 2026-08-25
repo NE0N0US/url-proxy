@@ -49,6 +49,9 @@
 				<li><span>
 					Services: <a href="https://httpbin.org/" target="_blank" translate="no">httpbin</a>, <a href="https://jsonplaceholder.typicode.com/" target="_blank" translate="no">JSONPlaceholder</a>, <a href="https://webhook.site/" target="_blank" translate="no">Webhook.site</a>
 				</span></li>
+				<li><span>
+					Tools: QR <a href="https://monocalc.com/tool/encode_decode/qr_code_generator" target="_blank">encode</a> and <a href="https://monocalc.com/tool/encode_decode/qr_code_decoder" target="_blank">decode</a>, <a href="https://www.punycoder.com/" target="_blank">Punycode</a>, <a href="https://www.64baser.com/" target="_blank">Base64</a>
+				</span></li>
 			</ul>
 		</div>
 	</div>

@@ -56,7 +56,6 @@
 
 <script setup lang="ts">
 import {computed} from 'vue'
-import {useQuasar} from 'quasar'
 import {Codemirror} from 'vue-codemirror'
 import {highlightActiveLineGutter} from '@codemirror/view'
 import {EditorView} from 'codemirror'
@@ -64,10 +63,10 @@ import {javascript} from '@codemirror/lang-javascript'
 import {json} from '@codemirror/lang-json'
 import {html} from '@codemirror/lang-html'
 import {xml} from '@codemirror/lang-xml'
-import {CodeService, hex} from '@'
+import {CodeService, hex, useUiStore} from '@'
 
 const
-	$q = useQuasar(),
+	{notify} = useUiStore(),
 
 	$props = defineProps<{
 		noLangOptions?: boolean | undefined,
@@ -120,7 +119,7 @@ async function minify() {
 	}
 	catch (error) {
 		console.error(error)
-		$q.notify('Error minifying ' + LANG_PLACEHOLDER[lang])
+		notify('Error minifying ' + LANG_PLACEHOLDER[lang])
 	}
 }
 
@@ -131,7 +130,7 @@ async function prettify() {
 	}
 	catch (error) {
 		console.error(error)
-		$q.notify('Error prettifying ' + LANG_PLACEHOLDER[lang])
+		notify('Error prettifying ' + LANG_PLACEHOLDER[lang])
 	}
 }
 </script>

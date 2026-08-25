@@ -57,7 +57,15 @@
 		input-class="artisan-mono"
 	>
 		<template #prepend>
-			<q-icon name="mdi-server-network-outline" color="text"/>
+			<a
+				class="curl-proxy-config"
+				:inert="options$.curlProxy.server.disable"
+				:href="AppService.resolveUrl('/api/curl-proxy-config', options$.curlProxy.server.value)"
+				target="_blank"
+				@click.passive="$event.stopPropagation()"
+			>
+				<q-icon name="mdi-server-network-outline" color="text"/>
+			</a>
 		</template>
 		<template #after>
 			<q-checkbox
@@ -315,6 +323,18 @@
 .list-item-input {
 	:deep(.q-field__control-container) {
 		margin-inline: 26px 10px;
+	}
+}
+
+.curl-proxy-config {
+	pointer-events: initial;
+
+	&:focus-visible {
+		outline: none;
+
+		* {
+			color: var(--q-primary);
+		}
 	}
 }
 
