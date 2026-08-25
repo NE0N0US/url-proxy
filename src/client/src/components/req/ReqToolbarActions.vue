@@ -13,7 +13,7 @@
 					label="Expand URL Editor"
 					caption="Open URL in expanded editor"
 					:disable="req$.fetching || req$.params.textMode"
-					@click="expandUrlEditor()"
+					@click="$q.dialog({component: ReqUrlDialog})"
 				/>
 				<menu-item
 					icon="mdi-link-variant"
@@ -61,8 +61,7 @@
 					icon="mdi-information-outline"
 					label="About"
 					caption="About URL Artisan"
-					disable
-					@click="openAbout()"
+					@click="$q.dialog({component: AboutDialog})"
 				/>
 			</q-list>
 		</q-menu>
@@ -86,6 +85,7 @@
 <script setup lang="ts">
 import {copyToClipboard, useQuasar} from 'quasar'
 import {
+	AboutDialog,
 	AppColorSettings,
 	CurlService,
 	MenuItem,
@@ -103,10 +103,6 @@ const
 	$emit = defineEmits<{
 		'send': ['repeat' | undefined],
 	}>()
-
-function expandUrlEditor() {
-	$q.dialog({component: ReqUrlDialog})
-}
 
 async function copyUrl() {
 	try {
@@ -153,6 +149,4 @@ function openExamples() {
 		value: randomString(80),
 	}))
 }
-
-function openAbout() {}
 </script>

@@ -1,5 +1,4 @@
-import {SearchParam} from '../../../../lib/proxy/search-param'
-import {AppService, Req, ReqBodyType, type ReqKV} from '@'
+import {AppService, Req, ReqBodyType, type ReqKV, SearchParam} from '@'
 
 export class ReqService {
 	static extractCurlProxy(req: Req) {

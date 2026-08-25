@@ -21,7 +21,8 @@
 		</style>
 	</head>
 	<body>
-		<div class="markdown-body"><div class="markdown-heading"><h1 class="heading-element">cURL Proxy</h1><a id="user-content-curl-proxy" class="anchor" aria-label="Permalink: cURL Proxy" href="#user-content-curl-proxy"><span aria-hidden="true" class="octicon octicon-link"></span></a></div>
+		<div class="markdown-body"><div class="markdown-heading"><h1 class="heading-element">cURL Proxy <a href="/url-artisan?open=about"><img src="https://camo.githubusercontent.com/4bf0184a3b243e4cadd1bd971076a88192f6eaca3c8720b6d5f985cc84bb1522/68747470733a2f2f62616467656e2e6e65742f7374617469632f636c69656e742f55524c2532304172746973616e3f69636f6e3d6368726f6d65" alt="&amp; URL Artisan" data-canonical-src="https://badgen.net/static/client/URL%20Artisan?icon=chrome" style="max-width: 100%;"></a>
+</h1><a id="user-content-curl-proxy-" class="anchor" aria-label="Permalink: cURL Proxy " href="#user-content-curl-proxy-"><span aria-hidden="true" class="octicon octicon-link"></span></a></div>
 <p><strong>cURL Proxy</strong> is an unauthenticated, non-caching, Node.js <strong>HTTP(S) proxy</strong> that supports batch requests and is <a href="#user-content-url-parameters">driven by URL query</a>. Headers, methods, bodies, and status codes can be overridden, and headers can also be deleted using wildcards. Responses can be transformed through <em><a href="#user-content-typescript-declaration-of-resbodyjavascript">custom JavaScript logic</a></em>, which can chain requests and merge responses. <em>It also supports</em> retries with exponential backoff, timeouts, throttling and optional limits on request batching and recursion. By default it strips sensitive request headers and <em>bypasses CORS</em> response restrictions, useful for debugging and development. <sub><a href="#user-content-notes">Notes</a> · <a href="#user-content-examples">Examples</a></sub></p>
 <div class="markdown-heading"><h1 class="heading-element">Usage <a href="https://nodejs.org/en/download" rel="nofollow"><img src="https://camo.githubusercontent.com/13084f2fa946bf9a76152723a3ec1adf37b97ca383f12c1638ababb22211a04e/68747470733a2f2f62616467656e2e6e65742f6e706d2f6e6f64652f406e65306e3075732f6375726c2d70726f78793f69636f6e3d6e6f6465646f746a73" alt="" data-canonical-src="https://badgen.net/npm/node/@ne0n0us/curl-proxy?icon=nodedotjs" style="max-width: 100%;"></a>
 </h1><a id="user-content-usage-" class="anchor" aria-label="Permalink: Usage " href="#user-content-usage-"><span aria-hidden="true" class="octicon octicon-link"></span></a></div>
@@ -182,24 +183,14 @@
   <span class="pl-c1">|</span> <span class="pl-smi">ReadableStream</span> <span class="pl-c1">|</span> <span class="pl-smi">Uint8Array</span> <span class="pl-c">// replace response body with value</span>
   <span class="pl-c1">|</span> <span class="pl-smi">unknown</span>                     <span class="pl-c">// replace response body with coerced value?.toString()</span>
   <span class="pl-c1">|</span> <span class="pl-c1">null</span>                        <span class="pl-c">// remove response body</span></pre></div>
-<div class="markdown-heading"><h2 class="heading-element">Extra</h2><a id="user-content-extra" class="anchor" aria-label="Permalink: Extra" href="#user-content-extra"><span aria-hidden="true" class="octicon octicon-link"></span></a></div>
+<div class="markdown-heading"><h2 class="heading-element">Extra <a href="https://deepwiki.com/NE0N0US/curl-proxy" rel="nofollow"><img src="https://camo.githubusercontent.com/0f5ae213ac378635adeb5d7f13cef055ad2f7d9a47b36de7b1c67dbe09f609ca/68747470733a2f2f6465657077696b692e636f6d2f62616467652e737667" alt="Ask DeepWiki" data-canonical-src="https://deepwiki.com/badge.svg" style="max-width: 100%;"></a>
+</h2><a id="user-content-extra-" class="anchor" aria-label="Permalink: Extra " href="#user-content-extra-"><span aria-hidden="true" class="octicon octicon-link"></span></a></div>
 <div class="markdown-heading"><h3 class="heading-element">Notes</h3><a id="user-content-notes" class="anchor" aria-label="Permalink: Notes" href="#user-content-notes"><span aria-hidden="true" class="octicon octicon-link"></span></a></div>
 <ul>
-<li>
-<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURIComponent" rel="nofollow">Escape</a> complex parameters (<code>url</code>, <code>body</code>, <code>resbody=javascript:…</code>) using tools like <a href="https://www.postman.com/" rel="nofollow">Postman</a>
-</li>
 <li>Keep entire URL under deployment platform limit, <a href="https://vercel.com/docs/errors/url_too_long" rel="nofollow">14 KB for Vercel</a>
 </li>
-<li>Additional <code>url</code> along with <code>skipdefaults</code> can be used to debug requests using services like <a href="https://webhook.site/" rel="nofollow">Webhook.site</a>
-</li>
-<li>You can debug requests and get fake responses in <a href="https://httpbin.org/" rel="nofollow">httpbin</a> and <a href="https://jsonplaceholder.typicode.com/" rel="nofollow">JSONPlaceholder</a>
-</li>
-<li>You can edit JSON objects and arrays in <a href="https://dataformatterpro.com/json-editor/" rel="nofollow">visual editors</a> and should <a href="https://jsonlint.com/json-minify" rel="nofollow">minify</a> it</li>
-<li>Both <code>url</code> count and <em>recursion</em> level are limited for performance and security reasons</li>
-<li>HTTP reference: <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers" rel="nofollow">headers</a>, <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Methods" rel="nofollow">request methods</a>, <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status" rel="nofollow">response status codes</a>
-</li>
-<li>Default response header changes allow <em>bypassing CORS</em> restrictions on <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Access-Control-Allow-Origin" rel="nofollow">request origin</a> and <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Access-Control-Expose-Headers" rel="nofollow">response headers</a>
-</li>
+<li>
+<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURIComponent" rel="nofollow">Escape</a> complex parameters (<code>url</code>, <code>body</code>, <code>resbody=javascript:…</code>)</li>
 <li>
 <code>resbody</code> custom handlers support <a href="https://test262.fyi/#%7Cqjs" rel="nofollow">most of ES2025</a>, <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/crypto" rel="nofollow">crypto</a> object and following Web APIs:
 <ul>
@@ -219,49 +210,11 @@
 <li><a href="https://developer.mozilla.org/docs/Web/API/CompressionStream" rel="nofollow">CompressionStream</a></li>
 </ul>
 </li>
-<li>Common mobile network speed, kbit/s:
-<table>
-<thead>
-<tr>
-<th align="center">Type</th>
-<th align="right">Download</th>
-<th align="right">Upload</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td align="center">3G</td>
-<td align="right">384</td>
-<td align="right">256</td>
-</tr>
-<tr>
-<td align="center">H</td>
-<td align="right">7 000</td>
-<td align="right">2 000</td>
-</tr>
-<tr>
-<td align="center">H+</td>
-<td align="right">12 000</td>
-<td align="right">5 000</td>
-</tr>
-<tr>
-<td align="center">4G</td>
-<td align="right">50 000</td>
-<td align="right">15 000</td>
-</tr>
-<tr>
-<td align="center">4G+</td>
-<td align="right">100 000</td>
-<td align="right">40 000</td>
-</tr>
-</tbody>
-</table>
-</li>
-<li>You can <a href="https://deepwiki.com/NE0N0US/curl-proxy" rel="nofollow">ask DeepWiki</a> about this project</li>
 </ul>
 <div class="markdown-heading"><h3 class="heading-element">Examples</h3><a id="user-content-examples" class="anchor" aria-label="Permalink: Examples" href="#user-content-examples"><span aria-hidden="true" class="octicon octicon-link"></span></a></div>
 <p>Under construction</p>
-<div class="markdown-heading"><h2 class="heading-element">License</h2><a id="user-content-license" class="anchor" aria-label="Permalink: License" href="#user-content-license"><span aria-hidden="true" class="octicon octicon-link"></span></a></div>
+<div class="markdown-heading"><h2 class="heading-element">License <a href="https://app.fossa.com/projects/git%2Bgithub.com%2FNE0N0US%2Fcurl-proxy?ref=badge_shield&amp;issueType=license" rel="nofollow"><img src="https://camo.githubusercontent.com/d3e961256adb95c458a9253392b5fd38d33c9adeb76ec7c3928e264b72176526/68747470733a2f2f6170702e666f7373612e636f6d2f6170692f70726f6a656374732f6769742532426769746875622e636f6d2532464e45304e3055532532466375726c2d70726f78792e7376673f747970653d736869656c64266973737565547970653d6c6963656e7365" alt="FOSSA Status" data-canonical-src="https://app.fossa.com/api/projects/git%2Bgithub.com%2FNE0N0US%2Fcurl-proxy.svg?type=shield&amp;issueType=license" style="max-width: 100%;"></a>
+</h2><a id="user-content-license-" class="anchor" aria-label="Permalink: License " href="#user-content-license-"><span aria-hidden="true" class="octicon octicon-link"></span></a></div>
 <p>Licensed under the Apache License, Version 2.0. See:</p>
 <ul>
 <li><a href="./LICENSE">LICENSE</a></li>

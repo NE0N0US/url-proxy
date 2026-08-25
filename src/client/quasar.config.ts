@@ -44,7 +44,7 @@ export default defineConfig(ctx => {
 			allowOutsideProjectDistDir: true,
 			distDir: '../../dist/url-artisan',
 			publicPath: '/url-artisan',
-			vueRouterMode: 'hash',
+			vueRouterMode: 'history',
 			useFilenameHashes: false,
 			typescript: {
 				strict: true,
@@ -64,11 +64,10 @@ export default defineConfig(ctx => {
 					viteConf.build.rolldownOptions.output.codeSplitting = false
 				}
 			},
-			// TODO: infer final target
-			// ['es2022', 'firefox115', 'chrome115', 'safari14']
-			// target: {
-			// 	browser: 'baseline-widely-available',
-			// },
+			target: {
+				// NOOTE: https://caniuse.com/css-relative-colors
+				browser: ['chrome119', 'edge119', 'firefox128', 'safari16.4', 'ios16.4'],
+			},
 		},
 		// TODO: extend to PWA
 		// https://v2.quasar.dev/quasar-cli-vite/developing-pwa/configuring-pwa

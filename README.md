@@ -1,4 +1,4 @@
-# cURL Proxy
+# cURL Proxy [![& URL Artisan](https://badgen.net/static/client/URL%20Artisan?icon=chrome)](/url-artisan?open=about)
 **cURL Proxy** is an unauthenticated, non-caching, Node.js **HTTP(S) proxy** that supports batch requests and is [driven by URL query](#url-parameters). Headers, methods, bodies, and status codes can be overridden, and headers can also be deleted using wildcards. Responses can be transformed through *[custom JavaScript logic](#typescript-declaration-of-resbodyjavascript)*, which can chain requests and merge responses. *It also supports* retries with exponential backoff, timeouts, throttling and optional limits on request batching and recursion. By default it strips sensitive request headers and *bypasses CORS* response restrictions, useful for debugging and development. <sub>[Notes](#notes) · [Examples](#examples)</sub>
 
 # Usage [![](https://badgen.net/npm/node/@ne0n0us/curl-proxy?icon=nodedotjs)](https://nodejs.org/en/download)
@@ -134,16 +134,10 @@ type CustomResult =
   | null                        // remove response body
 ```
 
-## Extra
+## Extra [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/NE0N0US/curl-proxy)
 ### Notes
-- [Escape](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURIComponent) complex parameters (`url`, `body`, `resbody=javascript:…`) using tools like [Postman](https://www.postman.com/)
 - Keep entire URL under deployment platform limit, [14 KB for Vercel](https://vercel.com/docs/errors/url_too_long)
-- Additional `url` along with `skipdefaults` can be used to debug requests using services like [Webhook.site](https://webhook.site/)
-- You can debug requests and get fake responses in [httpbin](https://httpbin.org/) and [JSONPlaceholder](https://jsonplaceholder.typicode.com/)
-- You can edit JSON objects and arrays in [visual editors](https://dataformatterpro.com/json-editor/) and should [minify](https://jsonlint.com/json-minify) it
-- Both `url` count and *recursion* level are limited for performance and security reasons
-- HTTP reference: [headers](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers), [request methods](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Methods), [response status codes](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status)
-- Default response header changes allow *bypassing CORS* restrictions on [request origin](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Access-Control-Allow-Origin) and [response headers](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Access-Control-Expose-Headers)
+- [Escape](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURIComponent) complex parameters (`url`, `body`, `resbody=javascript:…`)
 - `resbody` custom handlers support [most of ES2025](https://test262.fyi/#|qjs), [crypto](https://developer.mozilla.org/en-US/docs/Web/API/Window/crypto) object and following Web APIs:
   - [URL](https://developer.mozilla.org/docs/Web/API/URL)
   - [URLSearchParams](https://developer.mozilla.org/docs/Web/API/URLSearchParams)
@@ -159,15 +153,6 @@ type CustomResult =
   - [TransformStream](https://developer.mozilla.org/docs/Web/API/TransformStream)
   - [DecompressionStream](https://developer.mozilla.org/docs/Web/API/DecompressionStream)
   - [CompressionStream](https://developer.mozilla.org/docs/Web/API/CompressionStream)
-- Common mobile network speed, kbit/s:
-  | Type | Download | Upload |
-  |:----:|---------:|-------:|
-  | 3G   |      384 |    256 |
-  | H    |    7 000 |  2 000 |
-  | H+   |   12 000 |  5 000 |
-  | 4G   |   50 000 | 15 000 |
-  | 4G+  |  100 000 | 40 000 |
-- You can [ask DeepWiki](https://deepwiki.com/NE0N0US/curl-proxy) about this project
 
 ### Examples
 Under construction

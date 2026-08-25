@@ -46,7 +46,6 @@ export default defineBoot(({app}) => {
 			},
 		}),
 		keymap.of(foldKeymap),
-
 		highlightSelectionMatches(),
 		bracketMatching(),
 		syntaxHighlighting(artisanHighlightStyle),

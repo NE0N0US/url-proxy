@@ -1,5 +1,4 @@
-import {SearchParam} from '../../../lib/proxy/search-param'
-import {AppService} from '@'
+import {AppService, SearchParam} from '@'
 
 /** params, headers*, application/x-www-form-urlencoded, multipart/form-data */
 export interface ReqKV<V = string, K = string> {

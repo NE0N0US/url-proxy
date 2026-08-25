@@ -25,6 +25,7 @@
 				flat round color="text" :ripple="ripple$"
 			>
 				<q-menu
+					translate="no"
 					auto-close
 					:offset="[width$ - 40 - (offsetX ?? 0), 0]"
 					max-width="100dvw"

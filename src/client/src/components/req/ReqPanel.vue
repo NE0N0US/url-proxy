@@ -168,7 +168,8 @@ function pasteCurl(event: ClipboardEvent) {
 	try {
 		const text = event.clipboardData?.getData('text')
 		if (text?.trim().match(/^curl(\s|\\)/)) {
-			req$.value = CurlService.fromCurl(text)
+			const req = req$.value
+			Object.assign(req, CurlService.fromCurl(text).patchView(req), {id: req.id})
 			event.preventDefault()
 		}
 	}

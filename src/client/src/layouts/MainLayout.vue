@@ -64,29 +64,37 @@
 
 <script setup lang="ts">
 import {onMounted, ref} from 'vue'
+import {useRoute} from 'vue-router'
 import {useQuasar} from 'quasar'
-import {useEventListener, useTitle} from '@vueuse/core'
+import {useEventListener, useMagicKeys, useTitle, whenever} from '@vueuse/core'
 import {toUnicode} from 'punycode'
 import {
+	AboutDialog,
 	AppService,
-	Sidenav,
-	SplitterAccordion,
+	CurlService,
 	ReqBodyType,
 	ReqPanel,
 	ReqToolbarActions,
 	ResPanel,
 	ResToolbarActions,
+	Sidenav,
+	SplitterAccordion,
 	useReqStore,
 	useUiStore,
 } from '@'
 
 const
+	$route = useRoute(),
 	$q = useQuasar(),
 	{req$, touched$} = useReqStore(),
 	{ripple$} = useUiStore(),
 
 	drawer$ = ref(false),
 	collapse$ = ref<null | 'start' | 'end'>(null),
+
+	keys$ = useMagicKeys(),
+	watcherAltCtrlUp = whenever(keys$.alt_ctrl_arrowup!, () => collapse$.value = 'end'),
+	watcherAltCtrlDown = whenever(keys$.alt_ctrl_arrowdown!, () => collapse$.value = 'start'),
 
 	title$ = useTitle(() => 'URL Artisan' + (req$.value.urlValid ? `: ${
 		decodeURI(toUnicode(new URL(
@@ -103,7 +111,29 @@ const
 
 	SIDENAV_BP = 1_800
 
-onMounted(() => setTimeout(() => touched$.value = false))
+onMounted(() => {
+	const
+		{curl: curlParams, open: openParams} = $route.query,
+		curl = Array.isArray(curlParams) ? curlParams[0] : curlParams,
+		open = Array.isArray(openParams) ? openParams[0] : openParams
+	if (curl?.trim().match(/^curl(\s|\\)/))
+		try {
+			const req = req$.value
+			Object.assign(req, CurlService.fromCurl(curl).patchView(req), {id: req.id})
+			if (req.urlValid)
+				send()
+		}
+		catch (error) {
+			console.error(error)
+			$q.notify('Error pasting cURL command')
+		}
+	if (open)
+		switch (open) {
+			case 'about':
+				$q.dialog({component: AboutDialog})
+		}
+	setTimeout(() => touched$.value = false)
+})
 
 function send(command?: 'repeat') {
 	const
@@ -121,13 +151,15 @@ function send(command?: 'repeat') {
 }
 
 /* TODO:
-translate="no" in new components, e. g. res-*
-
-dialogs: cookies, encode/decode (https://vueuse.org/core/useWebWorkerFn/), code editor, examples, about (MDN - external help)
-UI deep linking? dialogs, tabs, import curl?
-keyboard controls: alt-*, table pagination, code editor keymaps
+$q.notify for copy and so on - with length because of https://vercel.com/docs/errors/url_too_long
+/api/curl-proxy-config
+dialogs:
+- https://vueuse.org/core/useWebWorkerFn/
+- open from URL
+1-res QJS runtime (w/console?)
+quasar.config.ts (PWA)
+package.json keywords?
 CSS: PX => REM?
-package.json keywords?, routes.ts, quasar.config.ts
 */
 
 </script>

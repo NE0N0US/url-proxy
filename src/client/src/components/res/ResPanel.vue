@@ -1,8 +1,8 @@
 <template>
-<div v-if="req$.result && 'error' in req$.result" class="artisan-res-panel res-message">
-	Error getting response. This may be due to an invalid URL, credentials in the URL, browser restrictions, or a network error. Try using <a href="/">cURL Proxy</a> to bypass browser restrictions, or check your network connection.
+<div v-if="req$.result && 'error' in req$.result" class="artisan-res-panel doc-section">
+	Error getting response. This may be due to an invalid URL, credentials in the URL, browser restrictions, or a network error. Try using <a href="/" target="_blank" translate="no">cURL Proxy</a> to bypass browser restrictions, or check your network connection.
 </div>
-<div v-else-if="!req$.result" class="artisan-res-panel res-message">
+<div v-else-if="!req$.result" class="artisan-res-panel doc-section">
 	No response received yet. Send a request to see the response here.
 </div>
 <div v-else class="artisan-res-panel full-width grow column no-wrap overflow-hidden">
@@ -42,21 +42,22 @@
 						:offset="[0, 10]"
 						transition-show="none" transition-hide="none"
 					>
-						<div class="stats-tooltip" translate="no">
+						<div class="stats-tooltip">
 							<span>Failed</span>
-							<span>{{stats$.failed}}</span>
+							<span translate="no">{{stats$.failed}}</span>
 							<span>OK (2xx)</span>
-							<span>{{stats$.ok}}</span>
+							<span translate="no">{{stats$.ok}}</span>
 							<span>TTFB</span>
-							<span>{{stats$.ttfb}}</span>
+							<span translate="no">{{stats$.ttfb}}</span>
 							<span>Download (OK)</span>
-							<span>{{stats$.download}}</span>
+							<span translate="no">{{stats$.download}}</span>
 						</div>
 					</q-tooltip>
 				</q-chip>
 				<q-chip :label="req$.result.res.status" :ripple="false">
 					<q-tooltip
 						v-if="req$.result.res.statusText"
+						translate="no"
 						:delay="300" :offset="[0, 10]" transition-duration="0"
 					>
 						{{req$.result.res.statusText}}
@@ -70,7 +71,7 @@
 					<q-tooltip :delay="300" :offset="[0, 10]" transition-duration="0">
 						{{
 							formatResTime(req$.result.resMs!)
-						}} (TTFB) + {{
+						}} (<span translate="no">TTFB</span>) + {{
 							formatResTime(req$.result.blobMs ?? (now$ - req$.result.resTime!))
 						}}
 					</q-tooltip>
@@ -89,6 +90,7 @@
 				</q-chip>
 				<q-chip
 					v-if="(req$.result.blob?.size || req$.result.blobSize) && bodyType$"
+					translate="no"
 					:label="bodyType$"
 					:ripple="false"
 				/>
@@ -135,7 +137,7 @@
 						:model-value="req$.resultBodyTab === 'hex' ? hex$ : text$"
 					/>
 				</div>
-				<div v-else-if="req$.result.blob" class="res-message">
+				<div v-else-if="req$.result.blob" class="doc-section">
 					No response body.
 				</div>
 			</q-tab-panel>
@@ -156,14 +158,6 @@
 </template>
 
 <style scoped lang="scss">
-.res-message {
-	padding: 8px 12px;
-
-	a {
-		color: var(--q-primary) !important;
-	}
-}
-
 .q-chip {
 	margin: 0;
 	min-width: min-content;
