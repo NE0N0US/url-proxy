@@ -137,6 +137,13 @@
 							</template>
 						</q-input>
 						<!-- .5 - workaround for fractional width: https://stackoverflow.com/q/39861687 -->
+						<http-method-field
+							v-else-if="name === 'method'"
+							class="list-item-input"
+							:offset-x="!index ? 6.5 : 12.5"
+							:placeholder="caption"
+							v-model="options$.curlProxy.method"
+						/>
 						<suggested-input
 							v-else
 							class="list-item-input"
@@ -180,14 +187,6 @@
 					v-model="options$.curlProxy.skipDefaults"
 				/>
 			</q-list>
-			<div class="proxy-options">
-				<http-method-field
-					class="list-item-input"
-					:offset-x="12"
-					placeholder="Override"
-					v-model="options$.curlProxy.method"
-				/>
-			</div>
 			<q-separator/>
 			<q-tabs
 				breakpoint="0"
@@ -339,11 +338,11 @@
 }
 
 .proxy-options {
-	display: flex;
-	flex-wrap: nowrap;
+	display: grid;
+	grid-auto-flow: column;
+	grid-auto-columns: minmax(0, 1fr);
 
 	& > * {
-		flex: 1 1 min-content;
 		padding: 4px 6px;
 
 		&:first-child {
@@ -443,7 +442,7 @@ const
 		],
 		[
 			{name: 'status', digits: 3, icon: 'mdi-numeric', label: 'Status', caption: 'Response status code'},
-			{name: 'statusText', icon: 'mdi-message-text-outline', label: 'Status Text', caption: 'Response status message'},
+			{name: 'method', caption: 'Override', options: [{}]},
 		],
 	] as Array<string | {
 		name: string,

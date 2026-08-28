@@ -11,7 +11,6 @@ export enum SearchParam {
 	BODY = 'body',
 	RES_BODY = 'resbody',
 	STATUS = 'status',
-	STATUS_TEXT = 'statustext',
 	RETRY = 'retry',
 	RETRY_IN = 'retryin',
 	RETRY_FACTOR = 'retryfactor',

@@ -98,24 +98,4 @@ function openExample(example: any) {
 	)
 	onDialogOK()
 }
-
-/*
-cURL Proxy: throttled big file, cookie/set-cookie
-
-function randomString(bytes: number) {
-	let result = ''
-	while (result.length < bytes)
-		result += new TextDecoder('ibm866')
-			.decode(crypto.getRandomValues(new Uint8Array(bytes)))
-			.replace(/\s/g, '')
-	return result.slice(0, bytes)
-}
-
-req.url = 'https://chatgpt.com/?temporary-chat=true'
-req.headers.rows = Array(500).fill(null).map(() => ({
-	disable: Math.random() > 0.5,
-	key: randomString(80),
-	value: randomString(80),
-}))
-*/
 </script>

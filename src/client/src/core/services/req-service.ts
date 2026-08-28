@@ -57,7 +57,6 @@ export class ReqService {
 		req.options.curlProxy.throttle = url.searchParams.get(SearchParam.THROTTLE) ?? ''
 		req.options.curlProxy.throttleUp = url.searchParams.get(SearchParam.THROTTLE_UP) ?? ''
 		req.options.curlProxy.status = url.searchParams.get(SearchParam.STATUS) ?? ''
-		req.options.curlProxy.statusText = url.searchParams.get(SearchParam.STATUS_TEXT) ?? ''
 		req.options.curlProxy.method = url.searchParams.get(SearchParam.METHOD) ?? ''
 		req.options.curlProxy.resBody = url.searchParams.get(SearchParam.RES_BODY) ?? ''
 		// objects

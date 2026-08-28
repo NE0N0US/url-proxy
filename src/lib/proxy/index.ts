@@ -174,7 +174,7 @@ export function createProxy(
 						body: doRunCustom ? res.clone().body : res.body,
 						headers: processResHeaders(resHeaders, searchParams, contentEncoding, headers),
 						status: status || res.status,
-						statusText: params[SearchParam.STATUS_TEXT] ?? res.statusText,
+						statusText: res.statusText,
 					},
 					doRunCustom ? resbody.slice(ResBodyParam.JAVASCRIPT.length) : undefined,
 					config.runCustomMs, config.runCustomBytes, config.runCustomUnsafe,

@@ -104,7 +104,6 @@ function formatHelp(message: string | undefined, config: ProxyConfig, html = fal
 			`\n  * ${ResBodyParam.JAVASCRIPT}… - custom handler, returns body, response or request` +
 			// other params
 			`\n* ${SearchParam.STATUS.padEnd(width)} - response status code to overwrite` +
-			`\n* ${SearchParam.STATUS_TEXT.padEnd(width)} - response status message to overwrite` +
 			`\n* ${SearchParam.RETRY.padEnd(width)} - retries after first request` +
 			`\n* ${SearchParam.RETRY_IN.padEnd(width)} - milliseconds between retries, supports exponential backoff:` +
 			`\n  min(in * (factor ^ attempt), limit)` +

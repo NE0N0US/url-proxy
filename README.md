@@ -57,7 +57,6 @@ const response = await proxy(request)
   - `btoa` - encode body to Base64
   - `javascript:…` - [custom handler](#typescript-declaration-of-resbodyjavascript), returns body, response or request
 - `status` - response status code to overwrite
-- `statustext` - response status message to overwrite
 - `retry` - retries after first request
 - `retryin` - milliseconds between retries, supports exponential backoff:\
   *min*(*in* * *factor*<sup>*attempt*</sup>, *limit*)

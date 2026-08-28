@@ -167,6 +167,8 @@ test big responses
 quasar.config.ts (PWA)
 package.json keywords?
 CSS: PX => REM?
+
+more cURL Proxy examples: throttled big file, cookie/set-cookie, response transformation
 */
 
 </script>
