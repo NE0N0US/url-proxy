@@ -60,7 +60,7 @@
 			<a
 				class="curl-proxy-config"
 				:inert="options$.curlProxy.server.disable"
-				:href="AppService.resolveUrl('/api/curl-proxy-config', options$.curlProxy.server.value)"
+				:href="curlProxyConfig$"
 				target="_blank"
 				@click.passive="$event.stopPropagation()"
 			>
@@ -397,6 +397,14 @@ const
 	}>(),
 
 	options$ = defineModel<ReqOptions>({required: true}),
+
+	curlProxyConfig$ = computed(() => {
+		const {server} = options$.value.curlProxy
+		if (server.disable || !server.value)
+			return undefined
+		const url = AppService.resolveUrl(server.value)
+		return AppService.isValidUrl(url) ? AppService.resolveUrl('/api/curl-proxy-config', url) : undefined
+	}),
 
 	retriesPreview$ = computed(() => {
 		const

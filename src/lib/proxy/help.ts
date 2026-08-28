@@ -54,7 +54,7 @@ function formatHelp(message: string | undefined, config: ProxyConfig, html = fal
 			// headers
 			`\n* ${
 				SearchParam.HEADERS.padEnd(width)
-			} - request headers to overwrite (${
+			} - JSON object of request headers to overwrite (${
 				formatHttpHeader(Header.HOST)
 			} is determined dynamically)` +
 			(isRecord(SearchDefaults.HEADERS) ? ', in addition to:' : '') +
@@ -62,7 +62,7 @@ function formatHelp(message: string | undefined, config: ProxyConfig, html = fal
 			// delheaders
 			`\n* ${
 				SearchParam.DEL_HEADERS.padEnd(width)
-			} - names of request headers to delete (${
+			} - JSON array of names of request headers to delete (${
 				formatHttpHeader(Header.CONNECTION)
 			} is deleted along with headers listed in it, * is a wildcard)` +
 			(isArray(SearchDefaults.DEL_HEADERS) ? ', in addition to:' : '') +
@@ -70,7 +70,7 @@ function formatHelp(message: string | undefined, config: ProxyConfig, html = fal
 			// resheaders
 			`\n* ${
 				SearchParam.RES_HEADERS.padEnd(width)
-			} - response headers to overwrite (${
+			} - JSON object of response headers to overwrite (${
 				formatHttpHeader(Header.AC_ALLOW_ORIGIN)
 			} and ${
 				formatHttpHeader(Header.AC_EXPOSE_HEADERS)
@@ -78,7 +78,7 @@ function formatHelp(message: string | undefined, config: ProxyConfig, html = fal
 			(isRecord(SearchDefaults.RES_HEADERS) ? ', in addition to:' : '') +
 			(isRecord(SearchDefaults.RES_HEADERS) ? `\n  ${formatStringRecord(SearchDefaults.RES_HEADERS)}` : '') +
 			// delresheaders
-			`\n* ${SearchParam.DEL_RES_HEADERS.padEnd(width)} - names of response headers to delete (${
+			`\n* ${SearchParam.DEL_RES_HEADERS.padEnd(width)} - JSON array of names of response headers to delete (${
 				formatHttpHeader(Header.CONNECTION)
 			} is deleted along with headers listed in it, * is a wildcard)` +
 			(isArray(SearchDefaults.DEL_RES_HEADERS) ? ', in addition to:' : '') +
@@ -99,8 +99,8 @@ function formatHelp(message: string | undefined, config: ProxyConfig, html = fal
 			// resbody
 			`\n* ${SearchParam.RES_BODY.padEnd(width)} - response transformation:` +
 			`\n  * ${ResBodyParam.NULL.padEnd(widthRbp + 1)} - remove response body` +
-			`\n  * ${ResBodyParam.ATOB.padEnd(widthRbp + 1)} - decode body from base64` +
-			`\n  * ${ResBodyParam.BTOA.padEnd(widthRbp + 1)} - encode body to base64` +
+			`\n  * ${ResBodyParam.ATOB.padEnd(widthRbp + 1)} - decode body from Base64` +
+			`\n  * ${ResBodyParam.BTOA.padEnd(widthRbp + 1)} - encode body to Base64` +
 			`\n  * ${ResBodyParam.JAVASCRIPT}… - custom handler, returns body, response or request` +
 			// other params
 			`\n* ${SearchParam.STATUS.padEnd(width)} - response status code to overwrite` +
@@ -108,9 +108,9 @@ function formatHelp(message: string | undefined, config: ProxyConfig, html = fal
 			`\n* ${SearchParam.RETRY.padEnd(width)} - retries after first request` +
 			`\n* ${SearchParam.RETRY_IN.padEnd(width)} - milliseconds between retries, supports exponential backoff:` +
 			`\n  min(in * (factor ^ attempt), limit)` +
-			`\n* ${SearchParam.RETRY_FACTOR.padEnd(width)} - backoff multiplier per retry (industry standard is 2)` +
+			`\n* ${SearchParam.RETRY_FACTOR.padEnd(width)} - backoff multiplier per retry (default is 1, industry standard is 2)` +
 			`\n* ${SearchParam.RETRY_LIMIT.padEnd(width)} - backoff maximum milliseconds` +
-			`\n* ${SearchParam.TIMEOUT.padEnd(width)} - milliseconds to abort request after` +
+			`\n* ${SearchParam.TIMEOUT.padEnd(width)} - milliseconds to abort request after (default is ${config.globalTimeout})` +
 			`\n* ${SearchParam.TTFB.padEnd(width)} - milliseconds to first response byte` +
 			`\n* ${SearchParam.THROTTLE.padEnd(width)} - bidirectional bandwidth limit in kbit/s` +
 			`\n* ${SearchParam.THROTTLE_UP.padEnd(width)} - upload bandwidth limit in kbit/s` +

@@ -224,7 +224,7 @@ async function getFullReqUrl(req: Req) {
 		const bodyString = await stringifyReqBody(bodyType, body)
 		if (bodyString !== undefined)
 			params.push([SearchParam.BODY, bodyString])
-		return server.value + '?' + params
+		return AppService.resolveUrl(server.value) + '?' + params
 			.map(([key, value]) => `${encodeURIComponent(key)}${value ? '=' : ''}${encodeURIComponent(value)}`)
 			.join('&')
 	}
@@ -387,7 +387,9 @@ export class Req {
 	method = 'GET'
 	url = ''
 	get urlValid() {
+		const {server} = this.options.curlProxy
 		return !!this.url && AppService.isValidUrl(AppService.resolveUrl(this.url))
+			&& (server.disable || !server.value || AppService.isValidUrl(AppService.resolveUrl(server.value)))
 	}
 	get urlFull() {
 		return getFullReqUrl(this)
@@ -449,6 +451,11 @@ export class Req {
 		this.resultBodyTab = req.resultBodyTab
 		this.resultHeadersTextMode = req.resultHeadersTextMode
 		this.resultHeadersPagination = req.resultHeadersPagination
+		return this
+	}
+
+	strip(...keys: (keyof Req)[]) {
+		keys.forEach(key => delete this[key])
 		return this
 	}
 }

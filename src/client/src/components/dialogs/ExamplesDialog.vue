@@ -17,27 +17,92 @@
 			</q-toolbar>
 			<q-separator/>
 		</div>
-		<div class="doc-section">
-			WIP
-		</div>
+		<q-list class="app-color-settings-presets non-selectable">
+			<menu-item
+				v-for="{icon, label, caption, req} of EXAMPLES" :key="label"
+				:icon="icon" :label="label" :caption="caption"
+				@click.passive="openExample(req)"
+			/>
+		</q-list>
 	</div>
 </q-dialog>
 </template>
 
 <script setup lang="ts">
 import {useDialogPluginComponent} from 'quasar'
-import {useUiStore} from '@'
+import {AppService, MenuItem, ReqBodyType, ReqService, useReqStore, useUiStore} from '@'
 
 const
+	{req$} = useReqStore(),
 	{ripple$} = useUiStore(),
 
 	{dialogRef, onDialogHide, onDialogOK} = useDialogPluginComponent(),
 
 	$emit = defineEmits([
 		...useDialogPluginComponent.emits,
+	]),
+
+	EXAMPLES = AppService.freeze([
+		{
+			icon: 'mdi-code-json',
+			label: 'JSONPlaceholder – Todos',
+			caption: 'Get todos using query params',
+			req: 'https://jsonplaceholder.typicode.com/todos?userId=1&userId=2',
+		},
+		{
+			icon: 'mdi-code-json',
+			label: 'JSONPlaceholder – Create Post',
+			caption: 'Create a post using a JSON body',
+			req: {
+				method: 'POST',
+				url: 'https://jsonplaceholder.typicode.com/posts',
+				headers: [
+					{disable: false, key: 'Content-Type', value: 'application/json'},
+				],
+				bodyType: ReqBodyType.TEXT,
+				body: '{"title":"Hello World","body":"This is a test post."}',
+			},
+		},
+		{
+			icon: 'mdi-file-document-check-outline',
+			label: 'httpbin – HTML',
+			caption: 'Get a simple HTML document with an SRI check',
+			req: {
+				url: 'httpbin.org/html',
+				integrityHashes: 'sha512-VkjZaWWgcqf7UEkgobHl1eg8poEkebMMEhRkFu2XtM9jtLGsamBYvjqh/xUi+lgpUs+eT0WqWx3EY1B7gamXbQ==',
+			},
+		},
+		{
+			icon: 'mdi-hexadecimal',
+			label: 'httpbin – Random bytes',
+			caption: 'Get 64 KiB of random data',
+			req: 'httpbin.org/stream-bytes/65536',
+		},
+		{
+			icon: 'mdi-ip-outline',
+			label: 'httpbin – IP',
+			caption: 'Get your IP address',
+			req: 'httpbin.org/ip',
+		},
 	])
 
-/*function randomString(bytes: number) {
+function openExample(example: any) {
+	const req = req$.value
+	Object.assign(
+		req,
+		{fetching: false},
+		ReqService
+			.deserialize(example instanceof Object ? example : {url: example})
+			.patchView(req)
+			.strip('id')
+	)
+	onDialogOK()
+}
+
+/*
+cURL Proxy: throttled big file, cookie/set-cookie
+
+function randomString(bytes: number) {
 	let result = ''
 	while (result.length < bytes)
 		result += new TextDecoder('ibm866')
@@ -46,14 +111,11 @@ const
 	return result.slice(0, bytes)
 }
 
-function openExamples() {
-	const req = req$.value
-	Object.assign(req, new Req().patchView(req), {id: req.id})
-	req.url = 'https://chatgpt.com/?temporary-chat=true'
-	req.headers.rows = Array(500).fill(null).map(() => ({
-		disable: Math.random() > 0.5,
-		key: randomString(80),
-		value: randomString(80),
-	}))
-}*/
+req.url = 'https://chatgpt.com/?temporary-chat=true'
+req.headers.rows = Array(500).fill(null).map(() => ({
+	disable: Math.random() > 0.5,
+	key: randomString(80),
+	value: randomString(80),
+}))
+*/
 </script>

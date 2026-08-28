@@ -36,7 +36,7 @@
 <li>CLI instance - <code>npx -y @ne0n0us/curl-proxy</code>
 </li>
 </ul>
-<div class="markdown-heading"><h2 class="heading-element">Library <a href="https://bundlephobia.com/package/@ne0n0us/curl-proxy" rel="nofollow"><img src="https://camo.githubusercontent.com/50771442bf38f93c13e82d21b5d983025d91f6b9600fa5f4d8bc334d84f0f00d/68747470733a2f2f62616467656e2e6e65742f62756e646c6570686f6269612f6d696e7a69702f406e65306e3075732f6375726c2d70726f78793f69636f6e3d6e706d" alt="" data-canonical-src="https://badgen.net/bundlephobia/minzip/@ne0n0us/curl-proxy?icon=npm" style="max-width: 100%;"></a>
+<div class="markdown-heading"><h2 class="heading-element">Library <a href="https://packagephobia.com/result?p=@ne0n0us/curl-proxy" rel="nofollow"><img src="https://camo.githubusercontent.com/5c9d4b526d9f13346864d8f00bb20a4e921654347dd9279946f01ea6a7453228/68747470733a2f2f62616467656e2e6e65742f7061636b61676570686f6269612f7075626c6973682f406e65306e3075732f6375726c2d70726f78793f69636f6e3d7061636b61676570686f626961" alt="" data-canonical-src="https://badgen.net/packagephobia/publish/@ne0n0us/curl-proxy?icon=packagephobia" style="max-width: 100%;"></a>
 </h2><a id="user-content-library-" class="anchor" aria-label="Permalink: Library " href="#user-content-library-"><span aria-hidden="true" class="octicon octicon-link"></span></a></div>
 <div class="highlight highlight-source-js"><pre><span class="pl-k">import</span> <span class="pl-kos">{</span><span class="pl-s1">createProxy</span><span class="pl-kos">}</span> <span class="pl-k">from</span> <span class="pl-s">'@ne0n0us/curl-proxy'</span>
 <span class="pl-k">const</span> <span class="pl-s1">proxy</span> <span class="pl-c1">=</span> <span class="pl-en">createProxy</span><span class="pl-kos">(</span><span class="pl-s1">config</span><span class="pl-kos">)</span>
@@ -49,9 +49,9 @@
 <li>
 <code>fastest</code> - return first available response and its index in <code>X-Proxy-Responses</code>, abort others</li>
 <li>
-<code>headers</code> - request headers to overwrite (<code>Host</code> is determined dynamically)</li>
+<code>headers</code> - JSON object of request headers to overwrite (<code>Host</code> is determined dynamically)</li>
 <li>
-<code>delheaders</code> - names of request headers to delete (<code>Connection</code> is deleted along with headers listed in it, <code>*</code> is a wildcard), in addition to:
+<code>delheaders</code> - JSON array of names of request headers to delete (<code>Connection</code> is deleted along with headers listed in it, <code>*</code> is a wildcard), in addition to:
 <div class="highlight highlight-source-json-comments"><pre>[
   <span class="pl-c"><span class="pl-c">//</span> https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers#hop-by-hop_headers</span>
   <span class="pl-s"><span class="pl-pds">"</span>Connection<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>Keep-Alive<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>Proxy-Authorization<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>Trailer<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>Transfer-Encoding<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>TE<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>Upgrade<span class="pl-pds">"</span></span>,
@@ -64,20 +64,19 @@
 ]</pre></div>
 </li>
 <li>
-<code>resheaders</code> - response headers to overwrite (<code>Access-Control-Allow-Origin</code> and <code>Access-Control-Expose-Headers</code> are set automatically), in addition to:
+<code>resheaders</code> - JSON object of response headers to overwrite (<code>Access-Control-Allow-Origin</code> and <code>Access-Control-Expose-Headers</code> are set automatically), in addition to:
 <div class="highlight highlight-source-json"><pre>{
   <span class="pl-ent">"Access-Control-Allow-Headers"</span>: <span class="pl-s"><span class="pl-pds">"</span>*<span class="pl-pds">"</span></span>,
+  <span class="pl-ent">"Access-Control-Allow-Credentials"</span>: <span class="pl-s"><span class="pl-pds">"</span>true<span class="pl-pds">"</span></span>,
   <span class="pl-ent">"Cross-Origin-Resource-Policy"</span>: <span class="pl-s"><span class="pl-pds">"</span>cross-origin<span class="pl-pds">"</span></span>,
   <span class="pl-ent">"Timing-Allow-Origin"</span>: <span class="pl-s"><span class="pl-pds">"</span>*<span class="pl-pds">"</span></span>
 }</pre></div>
 </li>
 <li>
-<code>delresheaders</code> - names of response headers to delete (<code>Connection</code> is deleted along with headers listed in it, <code>*</code> is a wildcard), in addition to:
+<code>delresheaders</code> - JSON array of names of response headers to delete (<code>Connection</code> is deleted along with headers listed in it, <code>*</code> is a wildcard), in addition to:
 <div class="highlight highlight-source-json-comments"><pre>[
   <span class="pl-c"><span class="pl-c">//</span> https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers#hop-by-hop_headers</span>
   <span class="pl-s"><span class="pl-pds">"</span>Connection<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>Keep-Alive<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>Proxy-Authenticate<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>Trailer<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>Transfer-Encoding<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>Upgrade<span class="pl-pds">"</span></span>,
-  <span class="pl-c"><span class="pl-c">//</span> for Access-Control-Allow-Origin</span>
-  <span class="pl-s"><span class="pl-pds">"</span>Access-Control-Allow-Credentials<span class="pl-pds">"</span></span>,
 ]</pre></div>
 </li>
 <li>
@@ -94,9 +93,9 @@
 <li>
 <code>null</code> - remove response body</li>
 <li>
-<code>atob</code> - decode body from base64</li>
+<code>atob</code> - decode body from Base64</li>
 <li>
-<code>btoa</code> - encode body to base64</li>
+<code>btoa</code> - encode body to Base64</li>
 <li>
 <code>javascript:…</code> - <a href="#user-content-typescript-declaration-of-resbodyjavascript">custom handler</a>, returns body, response or request</li>
 </ul>
@@ -111,11 +110,11 @@
 <code>retryin</code> - milliseconds between retries, supports exponential backoff:<br>
 <em>min</em>(<em>in</em> * <em>factor</em><sup><em>attempt</em></sup>, <em>limit</em>)</li>
 <li>
-<code>retryfactor</code> - backoff multiplier per retry (industry standard is <code>2</code>)</li>
+<code>retryfactor</code> - backoff multiplier per retry (default is <code>1</code>, industry standard is <code>2</code>)</li>
 <li>
 <code>retrylimit</code> - backoff maximum milliseconds</li>
 <li>
-<code>timeout</code> - milliseconds to abort request after</li>
+<code>timeout</code> - milliseconds to abort request after (default is <code>300000</code>)</li>
 <li>
 <code>ttfb</code> - milliseconds to first response byte</li>
 <li>

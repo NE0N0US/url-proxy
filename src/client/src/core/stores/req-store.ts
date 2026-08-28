@@ -1,23 +1,6 @@
 import {computed, ref, watch} from 'vue'
 import {createSharedComposable, syncRef} from '@vueuse/core'
-import {AppService, type ReqKV, Req} from '@'
-
-function syncReqParams(params: ReqKV[], reqParams: URLSearchParams) {
-	const
-		indices = new Set<number>(),
-		newParams: ReqKV[] = params.map(param => ({...param}))
-	reqParams.forEach((value, key) => {
-		let index = newParams.findIndex((param, index) =>
-			!param.disable && param.key && param.key === key && !indices.has(index)
-		)
-		if (index === -1)
-			index = newParams.push({disable: false, key, value}) - 1
-		else
-			newParams[index]!.value = value
-		indices.add(index)
-	})
-	return newParams.filter((param, index) => param.disable || !param.key || indices.has(index))
-}
+import {Req, ReqService} from '@'
 
 export const useReqStore = createSharedComposable(() => {
 	const
@@ -38,17 +21,7 @@ export const useReqStore = createSharedComposable(() => {
 			set: value => req$.value.params.rows = value,
 		}),
 		syncReq = syncRef(reqUrl$, reqParams$, {direction: 'both', transform: {
-			ltr: value => {
-				try {
-					const url = value ? new URL(AppService.resolveUrl(value)) : null
-					return syncReqParams(reqParams$.value,
-						url?.searchParams ?? new URLSearchParams()
-					)
-				}
-				catch {
-					return reqParams$.value
-				}
-			},
+			ltr: value => ReqService.extractUrlParams(value, reqParams$.value),
 			rtl: value => {
 				try {
 					const search = '?' + value

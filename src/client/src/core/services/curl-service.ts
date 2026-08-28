@@ -1,5 +1,5 @@
 import {parse} from '@scrape-do/curl-parser'
-import {Req, ReqBodyType, type ReqKV} from '@'
+import {Req, ReqBodyType, ReqService, type ReqKV} from '@'
 
 /** POSIX shell quoting */
 function shellQuote(value: string) {
@@ -87,6 +87,7 @@ export class CurlService {
 				type: ReqBodyType.TEXT,
 				value: body,
 			})
+		req.params.rows = ReqService.extractUrlParams(req.url, req.params.rows)
 		return req
 	}
 }

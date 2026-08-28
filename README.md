@@ -7,7 +7,7 @@
 - Local instance - `npm start`
 - CLI instance - `npx -y @ne0n0us/curl-proxy`
 
-## Library [![](https://badgen.net/bundlephobia/minzip/@ne0n0us/curl-proxy?icon=npm)](https://bundlephobia.com/package/@ne0n0us/curl-proxy)
+## Library [![](https://badgen.net/packagephobia/publish/@ne0n0us/curl-proxy?icon=packagephobia)](https://packagephobia.com/result?p=@ne0n0us/curl-proxy)
 ```javascript
 import {createProxy} from '@ne0n0us/curl-proxy'
 const proxy = createProxy(config)
@@ -17,8 +17,8 @@ const response = await proxy(request)
 ## URL Parameters
 - `url` - resource URL, `http` assumed, *required*, *repeatable* (max. `16`), first response used, other statuses in comma-separated `X-Proxy-Responses`
 - `fastest` - return first available response and its index in `X-Proxy-Responses`, abort others
-- `headers` - request headers to overwrite (`Host` is determined dynamically)
-- `delheaders` - names of request headers to delete (`Connection` is deleted along with headers listed in it, `*` is a wildcard), in addition to:
+- `headers` - JSON object of request headers to overwrite (`Host` is determined dynamically)
+- `delheaders` - JSON array of names of request headers to delete (`Connection` is deleted along with headers listed in it, `*` is a wildcard), in addition to:
   ```jsonc
   [
     // https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers#hop-by-hop_headers
@@ -31,20 +31,20 @@ const response = await proxy(request)
     "Sec-CH-*", "Sec-Fetch-*",
   ]
   ```
-- `resheaders` - response headers to overwrite (`Access-Control-Allow-Origin` and `Access-Control-Expose-Headers` are set automatically), in addition to:
+- `resheaders` - JSON object of response headers to overwrite (`Access-Control-Allow-Origin` and `Access-Control-Expose-Headers` are set automatically), in addition to:
   ```json
   {
     "Access-Control-Allow-Headers": "*",
+	"Access-Control-Allow-Credentials": "true",
     "Cross-Origin-Resource-Policy": "cross-origin",
     "Timing-Allow-Origin": "*"
   }
-- `delresheaders` - names of response headers to delete (`Connection` is deleted along with headers listed in it, `*` is a wildcard), in addition to:
+  ```
+- `delresheaders` - JSON array of names of response headers to delete (`Connection` is deleted along with headers listed in it, `*` is a wildcard), in addition to:
   ```jsonc
   [
     // https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers#hop-by-hop_headers
     "Connection", "Keep-Alive", "Proxy-Authenticate", "Trailer", "Transfer-Encoding", "Upgrade",
-    // for Access-Control-Allow-Origin
-    "Access-Control-Allow-Credentials",
   ]
    ```
 - `renresheaders` - rename response headers to `X-Original-*` before changes
@@ -53,17 +53,17 @@ const response = await proxy(request)
 - `body` - request body text
 - `resbody` - response transformation:
   - `null` - remove response body
-  - `atob` - decode body from base64
-  - `btoa` - encode body to base64
+  - `atob` - decode body from Base64
+  - `btoa` - encode body to Base64
   - `javascript:…` - [custom handler](#typescript-declaration-of-resbodyjavascript), returns body, response or request
 - `status` - response status code to overwrite
 - `statustext` - response status message to overwrite
 - `retry` - retries after first request
 - `retryin` - milliseconds between retries, supports exponential backoff:\
   *min*(*in* * *factor*<sup>*attempt*</sup>, *limit*)
-- `retryfactor` - backoff multiplier per retry (industry standard is `2`)
+- `retryfactor` - backoff multiplier per retry (default is `1`, industry standard is `2`)
 - `retrylimit` - backoff maximum milliseconds
-- `timeout` - milliseconds to abort request after
+- `timeout` - milliseconds to abort request after (default is `300000`)
 - `ttfb` - milliseconds to first response byte
 - `throttle` - bidirectional bandwidth limit in kbit/s
 - `throttleup` - upload bandwidth limit in kbit/s

@@ -69,7 +69,7 @@
       "purpose": "Explains streaming body transformations and HTTP payload handling.",
       "page_notes": [
         {
-          "content": "Explain streaming architecture, compression and decompression, transfer encoding, throttling, upload and download limits, base64 transformations, body replacement, response recompression, content-length implications, Web Streams versus Node streams, and why streaming is preferred over buffering. Clearly distinguish public `resbody` actions (`null`, `atob`, `btoa`, and `javascript:`) from internal processing such as automatic compression, decompression, HTTP content negotiation, and response recompression."
+          "content": "Explain streaming architecture, compression and decompression, transfer encoding, throttling, upload and download limits, Base64 transformations, body replacement, response recompression, content-length implications, Web Streams versus Node streams, and why streaming is preferred over buffering. Clearly distinguish public `resbody` actions (`null`, `atob`, `btoa`, and `javascript:`) from internal processing such as automatic compression, decompression, HTTP content negotiation, and response recompression."
         }
       ]
     },

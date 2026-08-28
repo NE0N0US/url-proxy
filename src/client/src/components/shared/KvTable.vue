@@ -227,7 +227,7 @@
 </style>
 
 <script setup lang="ts">
-import {computed, nextTick, ref, shallowRef, watch} from 'vue'
+import {computed, nextTick, onMounted, ref, shallowRef, watch} from 'vue'
 import {debounce, type QResizeObserver, type QTable} from 'quasar'
 import {syncRef, useFocusWithin} from '@vueuse/core'
 import fuzzysort from 'fuzzysort'
@@ -337,6 +337,14 @@ const
 		},
 		set: value => rows$.value = rows$.value.map(row => ({...row, disable: !value})),
 	})
+
+onMounted(() => {
+	const
+		pagination = pagination$.value,
+		{length} = rows$.value
+	if (pagination.rowsPerPage * (pagination.page - 1) >= length)
+		pagination.page = 1
+})
 
 function updateText() {
 	if (textMode$.value)

@@ -123,7 +123,7 @@ onMounted(() => {
 	if (curl?.trim().match(/^curl(\s|\\)/))
 		try {
 			const req = req$.value
-			Object.assign(req, CurlService.fromCurl(curl).patchView(req), {id: req.id})
+			Object.assign(req, CurlService.fromCurl(curl).patchView(req).strip('id'))
 			if (req.urlValid)
 				send()
 		}

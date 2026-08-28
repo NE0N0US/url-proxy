@@ -22,11 +22,10 @@ export const SearchDefaults = Object.freeze({
 	DEL_RES_HEADERS: Object.freeze([
 		// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers#hop-by-hop_headers
 		'Connection', 'Keep-Alive', 'Proxy-Authenticate', 'Trailer', 'Transfer-Encoding', 'Upgrade',
-		// for Access-Control-Allow-Origin
-		'Access-Control-Allow-Credentials',
 	]),
 	RES_HEADERS: Object.freeze({
 		'Access-Control-Allow-Headers': '*',
+		'Access-Control-Allow-Credentials': 'true',
 		'Cross-Origin-Resource-Policy': 'cross-origin',
 		'Timing-Allow-Origin': '*',
 	}),

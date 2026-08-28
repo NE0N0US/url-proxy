@@ -1,14 +1,45 @@
 import {AppService, Req, ReqBodyType, type ReqKV, SearchParam} from '@'
 
 export class ReqService {
+	static #syncReqParams(params: ReqKV[], reqParams: URLSearchParams) {
+		const
+			indices = new Set<number>(),
+			newParams: ReqKV[] = params.map(param => ({...param}))
+		reqParams.forEach((value, key) => {
+			let index = newParams.findIndex((param, index) =>
+				!param.disable && param.key && param.key === key && !indices.has(index)
+			)
+			if (index === -1)
+				index = newParams.push({disable: false, key, value}) - 1
+			else
+				newParams[index]!.value = value
+			indices.add(index)
+		})
+		return newParams.filter((param, index) => param.disable || !param.key || indices.has(index))
+	}
+
+	static extractUrlParams(value: string, params: ReqKV[]) {
+		try {
+			const url = value ? new URL(AppService.resolveUrl(value)) : null
+			return ReqService.#syncReqParams(params,
+				url?.searchParams ?? new URLSearchParams()
+			)
+		}
+		catch {
+			return params
+		}
+	}
+
 	static extractCurlProxy(req: Req) {
 		const
 			url = new URL(AppService.resolveUrl(req.url)),
+			serverUrl = url.origin + url.pathname,
 			urls = url.searchParams.getAll(SearchParam.URL)
-		req.url = AppService.resolveUrl(urls[0]!, url.origin + url.pathname)
+				.map(url => AppService.resolveUrl(url, serverUrl))
+		req.url = urls[0]!
 		// server
 		req.options.curlProxy.server.disable = false
-		req.options.curlProxy.server.value = url.origin + url.pathname
+		req.options.curlProxy.server.value = serverUrl
 		// urls
 		req.options.curlProxy.urls.disable = false
 		req.options.curlProxy.urls.value = urls.slice(1).join('\n')
@@ -67,17 +98,18 @@ export class ReqService {
 
 	static deserialize(obj: any) {
 		const req = new Req()
-		req.method = obj.method
-		req.url = obj.url
-		req.headers.rows = obj.headers
-		req.body.type = obj.bodyType
-		req.body.value = ReqService.#deserializeBody(obj)
-		req.options.includeCredentials = obj.includeCredentials
-		req.options.followRedirects = obj.followRedirects
+		req.method = obj.method ?? 'GET'
+		req.url = obj.url ?? ''
+		req.headers.rows = obj.headers ?? []
+		req.body.type = obj.bodyType ?? ReqBodyType.NONE
+		req.body.value = ReqService.#deserializeBody(obj) ?? null
+		req.options.includeCredentials = obj.includeCredentials ?? false
+		req.options.followRedirects = obj.followRedirects ?? false
 		req.options.integrityHashes.disable = false
-		req.options.integrityHashes.value = obj.integrityHashes
+		req.options.integrityHashes.value = obj.integrityHashes ?? ''
 		if (obj.extractCurlProxy)
 			ReqService.extractCurlProxy(req)
+		req.params.rows = ReqService.extractUrlParams(req.url, req.params.rows)
 		return req
 	}
 
@@ -98,19 +130,20 @@ export class ReqService {
 	}
 
 	static async serialize(req: Req) {
+		const url = await req.urlFull
 		return {
-			method: req.method,
-			url: await req.urlFull,
-			headers: req.headers.rows,
-			bodyType: req.body.type,
-			body: ReqService.#serializeBody(req),
-			includeCredentials: req.options.includeCredentials,
-			followRedirects: req.options.followRedirects,
+			method: req.method === 'GET' ? undefined : req.method,
+			url: url ? url : undefined,
+			headers: req.headers.rows.length ? req.headers.rows : undefined,
+			bodyType: req.body.type === ReqBodyType.NONE ? undefined : req.body.type,
+			body: ReqService.#serializeBody(req) ?? undefined,
+			includeCredentials: req.options.includeCredentials ? true : undefined,
+			followRedirects: req.options.followRedirects ? true : undefined,
 			integrityHashes: req.options.integrityHashes.disable
-				? '' : req.options.integrityHashes.value,
+				? undefined : req.options.integrityHashes.value || undefined,
 			extractCurlProxy:
-				!!req.options.curlProxy.server.value &&
-				!req.options.curlProxy.server.disable,
+				(!!req.options.curlProxy.server.value &&
+				!req.options.curlProxy.server.disable) ? true : undefined,
 		}
 	}
 }
