@@ -7,24 +7,24 @@
 			"sizes": "any"
 		}
 	],
-	"start_url": "./url-artisan",
+	"start_url": "./",
 	"scope": "./",
 	"display": "standalone",
 	"shortcuts": [
 		{
 			"name": "Cookies",
 			"description": "Manage this page's cookies",
-			"url": "./url-artisan?open=cookies"
+			"url": "./?open=cookies"
 		},
 		{
 			"name": "Examples",
 			"description": "Browse request examples",
-			"url": "./url-artisan?open=examples"
+			"url": "./?open=examples"
 		},
 		{
 			"name": "About",
 			"description": "About URL Artisan",
-			"url": "./url-artisan?open=about"
+			"url": "./?open=about"
 		}
 	],
 	"background_color": "#000000"
