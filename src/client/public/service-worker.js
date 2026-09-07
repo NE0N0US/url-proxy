@@ -6,6 +6,7 @@ const
 	STATIC_CACHE_URLS = Object.freeze([
 		'./favicon.svg',
 		'./index.html',
+		'./manifest.json',
 		'./',
 		'./assets/index.css',
 		'./assets/index.js',
