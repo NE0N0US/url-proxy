@@ -1,7 +1,7 @@
 {
 	"name": "@ne0n0us/url-artisan",
-	"description": "A Quasar Project",
-	"version": "0.3.0",
+	"description": "Browser-based HTTP client that uses native fetch by default and integrates with cURL Proxy when you need more control over requests and responses.",
+	"version": "0.4.0",
 	"engines": {
 		"node": ">=22.12.0"
 	},
@@ -27,6 +27,7 @@
 		"@vueuse/core": "^14.4.0",
 		"codemirror": "^6.0.2",
 		"fuzzysort": "^3.1.0",
+		"jsoncrush": "^1.1.8",
 		"prettier": "^3.9.6",
 		"punycode": "^2.3.1",
 		"quasar": "^2.21.1",
@@ -46,6 +47,13 @@
 	"type": "module",
 	"keywords": [
 		"vue",
-		"quasar"
+		"quasar",
+		"codemirror",
+		"frontend",
+		"spa",
+		"pwa",
+		"http-client",
+		"fetch",
+		"curl"
 	]
 }

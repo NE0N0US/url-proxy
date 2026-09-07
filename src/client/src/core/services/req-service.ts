@@ -1,3 +1,4 @@
+import JSONCrush from 'jsoncrush'
 import {AppService, Req, ReqBodyType, type ReqKV, SearchParam} from '@'
 
 export class ReqService {
@@ -27,6 +28,18 @@ export class ReqService {
 		}
 		catch {
 			return params
+		}
+	}
+
+	static #tryParse<T = any>(anyJson: string) {
+		try {
+			return JSON.parse(anyJson) as T
+		}
+		catch {
+			try {
+				return JSON.parse(JSONCrush.uncrush(anyJson)) as T
+			}
+			catch {}
 		}
 	}
 
@@ -61,14 +74,14 @@ export class ReqService {
 		req.options.curlProxy.resBody = url.searchParams.get(SearchParam.RES_BODY) ?? ''
 		// objects
 		const [headers, resHeaders] = [SearchParam.HEADERS, SearchParam.RES_HEADERS]
-			.map(param => Object.entries(JSON.parse(url.searchParams.get(param) ?? '{}'))
+			.map(param => Object.entries(ReqService.#tryParse(url.searchParams.get(param) || '{}') ?? {})
 				.map(([key, value]) => ({disable: false, key, value: value?.toString() ?? ''}))
 			)
 		req.options.curlProxy.headersAll.headers!.rows = headers!
 		req.options.curlProxy.headersAll.resHeaders!.rows = resHeaders!
 		// arrays
 		const [delHeaders, delResHeaders] = [SearchParam.DEL_HEADERS, SearchParam.DEL_RES_HEADERS]
-			.map(param => (JSON.parse(url.searchParams.get(param) ?? '[]') as unknown[])
+			.map(param => (ReqService.#tryParse<unknown[]>(url.searchParams.get(param) || '[]') ?? [])
 				.map(key => ({disable: false, key: key?.toString() ?? '', value: ''}))
 			)
 		req.options.curlProxy.headersAll.delHeaders!.rows = delHeaders!

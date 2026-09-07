@@ -1,3 +1,4 @@
+import JSONCrush from 'jsoncrush'
 import {AppService, SearchParam} from '@'
 
 /** params, headers*, application/x-www-form-urlencoded, multipart/form-data */
@@ -111,6 +112,16 @@ export class ReqOptions {
 
 // #region - req
 
+function tryCrush(json: string) {
+	try {
+		const crushed = JSONCrush.crush(json)
+		return encodeURIComponent(crushed).length < encodeURIComponent(json).length ? crushed : json
+	}
+	catch {
+		return json
+	}
+}
+
 async function stringifyReqBody(type: ReqBodyType, body: ReqBody) {
 	switch (type) {
 		case ReqBodyType.TEXT:
@@ -200,7 +211,7 @@ async function getFullReqUrl(req: Req) {
 			if (entries.length)
 				params.push([
 					key as string,
-					JSON.stringify(Object.fromEntries(entries)),
+					tryCrush(JSON.stringify(Object.fromEntries(entries))),
 				])
 		})
 		// arrays
@@ -214,7 +225,7 @@ async function getFullReqUrl(req: Req) {
 			if (keys.length)
 				params.push([
 					key as string,
-					JSON.stringify(keys),
+					tryCrush(JSON.stringify(keys)),
 				])
 		})
 		// body
@@ -374,6 +385,10 @@ function setFetching(req: Req, fetching: boolean, recursive = false) {
 				req._state = 'idle'
 				req._abort?.()
 				req.fetchRepeat = false
+				if (req.result) {
+					delete req.result.resMs
+					delete req.result.resTime
+				}
 				break
 		}
 	}

@@ -17,8 +17,8 @@ const response = await proxy(request)
 ## URL Parameters
 - `url` - resource URL, `http` assumed, *required*, *repeatable* (max. `16`), first response used, other statuses in comma-separated `X-Proxy-Responses`
 - `fastest` - return first available response and its index in `X-Proxy-Responses`, abort others
-- `headers` - JSON object of request headers to overwrite (`Host` is determined dynamically)
-- `delheaders` - JSON array of names of request headers to delete (`Connection` is deleted along with headers listed in it, `*` is a wildcard), in addition to:
+- `headers` - JSON or JSONCrush object of request headers to overwrite (`Host` is determined dynamically)
+- `delheaders` - JSON or JSONCrush array of names of request headers to delete (`Connection` is deleted along with headers listed in it, `*` is a wildcard), in addition to:
   ```jsonc
   [
     // https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers#hop-by-hop_headers
@@ -31,7 +31,7 @@ const response = await proxy(request)
     "Sec-CH-*", "Sec-Fetch-*",
   ]
   ```
-- `resheaders` - JSON object of response headers to overwrite (`Access-Control-Allow-Origin` and `Access-Control-Expose-Headers` are set automatically), in addition to:
+- `resheaders` - JSON or JSONCrush object of response headers to overwrite (`Access-Control-Allow-Origin` and `Access-Control-Expose-Headers` are set automatically), in addition to:
   ```json
   {
     "Access-Control-Allow-Headers": "*",
@@ -40,7 +40,7 @@ const response = await proxy(request)
     "Timing-Allow-Origin": "*"
   }
   ```
-- `delresheaders` - JSON array of names of response headers to delete (`Connection` is deleted along with headers listed in it, `*` is a wildcard), in addition to:
+- `delresheaders` - JSON or JSONCrush array of names of response headers to delete (`Connection` is deleted along with headers listed in it, `*` is a wildcard), in addition to:
   ```jsonc
   [
     // https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers#hop-by-hop_headers

@@ -182,7 +182,15 @@ object {
 import {computed, onUnmounted, ref, shallowRef, watch} from 'vue'
 import {type QTooltip} from 'quasar'
 import {computedAsync, onClickOutside, useTimestamp} from '@vueuse/core'
-import {AppService, CodeEditor, CodeService, KvTable, useReqStore, useUiStore} from '@'
+import {
+	AppService,
+	CodeEditor,
+	CodeService,
+	KvTable,
+	useConcurrentWorkerFn,
+	useReqStore,
+	useUiStore,
+} from '@'
 
 const
 	now$ = useTimestamp(),
@@ -270,11 +278,12 @@ const
 			const
 				req = req$.value,
 				blob = req.result?.blob
-			return req.resultBodyTab === 'hex' && blob?.size ? resTextCached(
+			return (req.resultBodyTab === 'hex' && blob?.size) ? resTextCached(
 				'hex',
 				() => resHex(blob).catch(error => {
 					console.error(error)
-					return 'Error displaying HEX'
+					return 'Error displaying HEX' +
+						(error instanceof RangeError ? ' – string exceeds browser limits' : '')
 				})
 			) : ''
 		},
@@ -283,11 +292,20 @@ const
 
 	textRaw$ = computedAsync(
 		() => resTextCached(
-			'raw',
-			() => req$.value.result!.blob!.text().catch(error => {
-				console.error(error)
-				return error?.toString() as string
-			})
+			'plaintext',
+			() => {
+				const blob = req$.value.result!.blob!
+				return blob.text()
+					.then(text => (blob.size && !text.length)
+						? 'Error displaying text – string exceeds browser limits'
+						: text
+					)
+					.catch(error => {
+						console.error(error)
+						return 'Error displaying text' +
+							(error instanceof RangeError ? ' – string exceeds browser limits' : '')
+					})
+			}
 		),
 		''
 	),
@@ -297,7 +315,7 @@ const
 			const
 				req = req$.value,
 				textRaw = textRaw$.value
-			return textRaw ? resTextCached(
+			return (req.resultBodyTab !== 'hex' && textRaw) ? resTextCached(
 				req.resultBodyTab,
 				() => CodeService.prettify(textRaw, req.resultBodyTab).catch(() => textRaw)
 			) : ''
@@ -321,7 +339,7 @@ function formatResTime(ms: number) {
 		: (+(Math.ceil(ms) / 1_000)?.toFixed(3) + '\xA0s')
 }
 
-async function resHex(blob: Blob, bytesPerLine = 16) {
+const resHex = useConcurrentWorkerFn(async (blob: Blob, bytesPerLine = 16) => {
 	const
 		bytes = new Uint8Array(await blob.arrayBuffer()),
 		lines = []
@@ -338,7 +356,7 @@ async function resHex(blob: Blob, bytesPerLine = 16) {
 		lines.push([address, hex, ascii].join('  '))
 	}
 	return lines.join('\n')
-}
+})
 
 async function resTextCached(cacheKey: string, compute: () => Promise<string>) {
 	const req = req$.value

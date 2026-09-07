@@ -58,14 +58,19 @@ export class AppService {
 
 	/** relative or protocol-less */
 	static resolveUrl(url: string, base = location.toString(), protocol = 'http') {
-		const isRelative = url === '.' ||
-			url.startsWith('/') ||
-			url.startsWith('./') ||
-			url.startsWith('../') ||
-			url.startsWith('?') ||
-			url.startsWith('#')
-		return isRelative ? new URL(url, base).href :
-			url.match(/^\w+:\/\//) ? url : (protocol + '://' + url)
+		try {
+			const isRelative = url === '.' ||
+				url.startsWith('/') ||
+				url.startsWith('./') ||
+				url.startsWith('../') ||
+				url.startsWith('?') ||
+				url.startsWith('#')
+			return isRelative ? new URL(url, base).href :
+				url.match(/^\w+:\/\//) ? url : (protocol + '://' + url)
+		}
+		catch {
+			return ''
+		}
 	}
 
 	/** parseable http(s) */

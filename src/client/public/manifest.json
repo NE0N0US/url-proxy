@@ -1,0 +1,31 @@
+{
+	"name": "URL Artisan",
+	"description": "Browser-based HTTP client that uses native fetch by default and integrates with cURL Proxy when you need more control over requests and responses.",
+	"icons": [
+		{
+			"src": "./favicon.svg",
+			"sizes": "any"
+		}
+	],
+	"start_url": "./url-artisan",
+	"scope": "./",
+	"display": "standalone",
+	"shortcuts": [
+		{
+			"name": "Cookies",
+			"description": "Manage this page's cookies",
+			"url": "./url-artisan?open=cookies"
+		},
+		{
+			"name": "Examples",
+			"description": "Browse request examples",
+			"url": "./url-artisan?open=examples"
+		},
+		{
+			"name": "About",
+			"description": "About URL Artisan",
+			"url": "./url-artisan?open=about"
+		}
+	],
+	"background_color": "#000000"
+}

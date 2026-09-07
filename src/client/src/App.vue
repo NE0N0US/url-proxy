@@ -37,6 +37,16 @@ const
 
 	colors$ = useCssVars(['--color-background', '--color-text', '--q-primary']),
 
+	watcherThemeColor = watch(colors$, value => {
+		let meta = document.querySelector('meta[name="theme-color"]')
+		if (!meta) {
+			meta = document.createElement('meta')
+			meta.setAttribute('name', 'theme-color')
+			document.head.appendChild(meta)
+		}
+		meta.setAttribute('content', value['--color-background']!)
+	}),
+
 	FAVICON = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
 		<path d="M21.3333 0H2.6667A2.6667 2.6667 90 00-0 2.6667V21.3333A2.6667 2.6667 90 002.6667 24H21.3333A2.6667 2.6667 90 0024 21.3333V2.6667A2.6667 2.6667 90 0021.3333-0" fill="black"/>
 		<path d="M14.5867 15.7467c.84-.84 1.3066-1.96 1.3066-3.16s-.4666-2.32-1.3066-3.1734c-.44-.4266-1.2134-.44-1.6534 0-.2266.2267-.3466.52-.3466.8267 0 .32.12.6133.3466.8267.4.4133.64.9333.64 1.52 0 .5733-.24 1.12-.64 1.5333L10 17.04c-.8133.8267-2.2267.8267-3.04 0-.4133-.4133-.64-.9467-.64-1.52s.2267-1.12.64-1.52l.5333-.5467-.0666-.2c-.2134-.5866-.32-1.2533-.3067-1.92l.0133-.8-1.8 1.8134c-1.7733 1.76-1.7733 4.6 0 6.32C6.1867 19.56 7.3333 20 8.48 20s2.2933-.44 3.16-1.3333l2.9467-2.92" fill="white"/>

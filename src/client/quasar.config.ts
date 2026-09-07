@@ -13,6 +13,7 @@ export default defineConfig(ctx => {
 		],
 		boot: [
 			'codemirror',
+			'sw',
 		],
 		framework: {
 			iconSet: 'mdi-v7',
@@ -69,19 +70,5 @@ export default defineConfig(ctx => {
 				browser: ['chrome119', 'edge119', 'firefox128', 'safari16.4', 'ios16.4'],
 			},
 		},
-		// TODO: extend to PWA
-		// https://v2.quasar.dev/quasar-cli-vite/developing-pwa/configuring-pwa
-		// pwa: {
-		// 	workboxMode: 'GenerateSW', // 'GenerateSW' or 'InjectManifest'
-		// 	swFilename: 'sw.js',
-		// 	manifestFilename: 'manifest.json',
-		// 	extendPWAManifestJson (json) {},
-		// 	useCredentialsForManifestTag: true,
-		// 	injectPWAMetaTags: false,
-		// 	extendPWACustomSWConf (rolldownConf) {},
-		// 	extendPWAGenerateSWOptions (cfg) {},
-		// 	extendPWAInjectManifestOptions (cfg) {},
-		// 	extendPWASwTsConfig (tsConfig) {}
-		// },
 	}
 })

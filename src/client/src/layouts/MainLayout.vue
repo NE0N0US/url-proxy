@@ -163,11 +163,6 @@ function send(command?: 'repeat') {
 
 /* TODO:
 1-res QJS runtime (w/console?)
-test big responses
-quasar.config.ts (PWA)
-package.json keywords?
-CSS: PX => REM?
-
 more cURL Proxy examples: throttled big file, cookie/set-cookie, response transformation
 */
 
